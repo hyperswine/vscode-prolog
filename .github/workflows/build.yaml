@@ -15,9 +15,6 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v2
 
-      - name: fetch all history and tags from all branches for gitversion
-        run: git fetch --prune --unshallow
-
       - name: Process version of the tag
         id: gitversion
         uses: ncipollo/semantic-version-action@v1
