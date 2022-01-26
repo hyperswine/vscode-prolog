@@ -19,8 +19,8 @@ jobs:
         run: git fetch --prune --unshallow
 
       - name: Process version of the tag
-          id: gitversion
-          uses: ncipollo/semantic-version-action@v1
+        id: gitversion
+        uses: ncipollo/semantic-version-action@v1
         
       - name: print gitversion
         run: |
