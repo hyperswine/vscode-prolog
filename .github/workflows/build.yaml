@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Process version of the tag
         id: gitversion
