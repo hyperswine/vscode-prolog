@@ -7,7 +7,7 @@
     "icon": "images/vsplogo.png",
     "license": "MIT",
     "engines": {
-        "vscode": "^1.16.0"
+        "vscode": "^1.63.0"
     },
     "categories": [
         "Programming Languages",
