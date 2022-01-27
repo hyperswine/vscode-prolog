@@ -35,6 +35,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+
+      - name: install vsce
+        run: npm install -g vsce
         
       # Following notes here on moving away from vscode dependency:
       # https://code.visualstudio.com/api/working-with-extensions/testing-extension        

@@ -338,6 +338,7 @@
         "vscode:prepublish": "tsc -p ./",
         "compile": "tsc -watch -p ./",
         "test": "node ./node_modules/vscode/bin/test",
+        "package": "vsce package",
         "syntax4swi": "yaml2json --pretty --save ./syntaxes/prolog.swi.tmLanguage.yaml",
         "syntax4ecl": "yaml2json --pretty --save ./syntaxes/prolog.ecl.tmLanguage.yaml",
         "pkgvars": "node ./node_modules/vscode/bin/install"
