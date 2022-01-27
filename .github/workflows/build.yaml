@@ -36,6 +36,8 @@ jobs:
         with:
           node-version: '12.x'
         
+      # Following notes here on moving away from vscode dependency:
+      # https://code.visualstudio.com/api/working-with-extensions/testing-extension        
       - name: clean install dependencies
         run: npm ci
 
