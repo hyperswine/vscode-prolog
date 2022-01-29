@@ -1,8 +1,8 @@
-import { LaunchRequestArguments } from "./prologDebugger";
+// import { LaunchRequestArguments } from "./prologDebugger";
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import { spawn } from "process-promises";
-import { DebugProtocol } from "vscode-debugprotocol";
+import { DebugProtocol } from "@vscode/debugprotocol";
 import { PrologDebugSession } from "./prologDebugSession";
 import {
   StoppedEvent,
@@ -10,7 +10,7 @@ import {
   Source,
   OutputEvent,
   TerminatedEvent
-} from "vscode-debugadapter";
+} from "@vscode/debugadapter";
 import { basename, resolve } from "path";
 // import * as Net from "net";
 import * as jsesc from "jsesc";

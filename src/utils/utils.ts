@@ -4,8 +4,8 @@ import * as fs from "fs";
 import * as YAML from "yamljs";
 import * as cp from "child_process";
 import * as jsesc from "jsesc";
-import { CompleterResult } from "readline";
-import { error } from "util";
+// import { CompleterResult } from "readline";
+// import { error } from "util";
 import * as path from "path";
 import {
   ExtensionContext,
@@ -329,7 +329,7 @@ export class Utils {
   ): string[] {
     let plCode = jsesc(clause, { quotes: "double" });
     let input: string,
-      prologProcess: cp.SpawnSyncReturns<Buffer>,
+      prologProcess: cp.SpawnSyncReturns<string | Buffer>,
       runOptions: cp.SpawnSyncOptions;
     switch (Utils.DIALECT) {
       case "swi":
@@ -407,7 +407,8 @@ export class Utils {
         catch((term_string(_, "${str}"), writeln("result:validTerm")),
           _, writeln("result:invalidTerm")).
           `;
-    let runOptions = {
+    let runOptions: cp.SpawnSyncOptions;
+    runOptions = {
       cwd: workspace.rootPath,
       encoding: "utf8",
       input: goals

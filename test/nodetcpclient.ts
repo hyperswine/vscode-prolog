@@ -4,7 +4,7 @@ import * as rlp from "readline-promise";
 
 let client = new Net.Socket();
 
-client.connect(5959, "localhost", _ => {
+client.connect(5959, "localhost", () => {
   // console.log("connected");
   // client.write("start.\n");
   // while (true) {

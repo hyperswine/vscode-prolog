@@ -7,8 +7,8 @@ import {
   Source,
   Scope,
   Thread
-} from "vscode-debugadapter";
-import { DebugProtocol } from "vscode-debugprotocol";
+} from "@vscode/debugadapter";
+import { DebugProtocol } from "@vscode/debugprotocol";
 import {
   ITraceCmds,
   LaunchRequestArguments,
@@ -16,6 +16,7 @@ import {
 } from "./prologDebugger";
 import * as path from "path";
 import { spawn, SpawnOptions } from "process-promises";
+import { ClientRequest } from "http";
 
 export class PrologDebugSession extends DebugSession {
   private static SCOPEREF = 1;
@@ -117,19 +118,21 @@ export class PrologDebugSession extends DebugSession {
       this._currentVariables.push(vars.pop());
     }
   }
-  protected async launchRequest(
+  protected launchRequest(
     response: DebugProtocol.LaunchResponse,
-    args: LaunchRequestArguments
+    args: DebugProtocol.LaunchRequestArguments,
+    request?: DebugProtocol.Request
   ) {
+    let richArgs = args as LaunchRequestArguments;
     // window.showInformationMessage("hello");
-    this._startupQuery = args.startupQuery || "start";
-    this._startFile = path.resolve(args.program);
-    this._cwd = args.cwd;
-    this._runtimeExecutable = args.runtimeExecutable || "swipl";
+    this._startupQuery = richArgs.startupQuery || "start";
+    this._startFile = path.resolve(richArgs.program);
+    this._cwd = richArgs.cwd;
+    this._runtimeExecutable = richArgs.runtimeExecutable || "swipl";
     // this._runtimeArgs = args.runtimeArgs || null;
-    this._stopOnEntry = typeof args.stopOnEntry ? args.stopOnEntry : true;
-    this._traceCmds = args.traceCmds;
-    this._prologDebugger = await new PrologDebugger(args, this);
+    this._stopOnEntry = typeof richArgs.stopOnEntry ? richArgs.stopOnEntry : true;
+    this._traceCmds = richArgs.traceCmds;
+    this._prologDebugger = new PrologDebugger(richArgs, this);
     this._prologDebugger.addListener(
       "responseBreakpoints",
       (bps: DebugProtocol.SetBreakpointsResponse) => {

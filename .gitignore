@@ -6,3 +6,4 @@ vsc-extension-quickstart.md
 src/**/*.js
 .vscode/symbols.json
 .nvm/**
+*.vsix
