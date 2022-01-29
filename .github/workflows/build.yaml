@@ -24,12 +24,13 @@ jobs:
         uses: ncipollo/semantic-version-action@v1
         
       - name: print gitversion
+        id: version
         run: |
           echo "Major: ${{ steps.gitversion.outputs.major }}"
           echo "Minor: ${{ steps.gitversion.outputs.minor }}"
           echo "Patch: ${{ steps.gitversion.outputs.patch }}"
-          echo "MajorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}"
-          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+          echo "SemVer: ${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
+          echo "::set-output name=semVer::${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
 
       - name: setup node
         uses: actions/setup-node@v1
@@ -49,7 +50,7 @@ jobs:
         with:
           files: '${{github.workspace}}/package.json'
           patch-syntax: |
-            = /version => "${{ steps.gitversion.outputs.semVer }}"
+            = /version => "${{ steps.version.outputs.semVer }}"
       
       - name: add version in CHANGELOG.md
         uses: cschleiden/replace-tokens@v1.0
