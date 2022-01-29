@@ -2,8 +2,6 @@ name: Build VSIX artifact
 
 on:
   push:
-    branches: 
-      - main
     tags:
       - '*'
     paths-ignore: # dont run when changes made to these folders 
@@ -31,6 +29,12 @@ jobs:
           echo "Patch: ${{ steps.gitversion.outputs.patch }}"
           echo "SemVer: ${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
           echo "::set-ouput name=semVer::${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
+          echo "VERSION=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}" >> $GITHUB_ENV
+
+      - name: print version
+        run: |
+          echo "Output semVer is ${{ steps.version.outputs.semVer }}"
+          echo "Env VERSION is ${{ env.VERSION }}"
 
       - name: setup node
         uses: actions/setup-node@v1
@@ -50,7 +54,7 @@ jobs:
         with:
           files: '${{github.workspace}}/package.json'
           patch-syntax: |
-            = /version => "${{ steps.version.outputs.semVer }}"
+            = /version => "${{ env.VERSION }}"
       
       - name: add version in CHANGELOG.md
         uses: cschleiden/replace-tokens@v1.0
@@ -70,4 +74,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: vsc-prolog-${{ env.VERSION }}.vsix
-          path: ${{github.workspace}}/vsc-prolog-${{ steps.version.outputs.semVer }}.vsix
+          path: ${{github.workspace}}/vsc-prolog-${{ env.VERSION }}.vsix

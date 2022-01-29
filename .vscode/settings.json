@@ -6,5 +6,8 @@
     "search.exclude": {
         "out": true // set this to false to include "out" folder in search results
     },
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": "file:///workspace/vsc-prolog/.github/workflows/build.yaml"
+    }
 }
