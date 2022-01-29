@@ -30,8 +30,7 @@ jobs:
           echo "Minor: ${{ steps.gitversion.outputs.minor }}"
           echo "Patch: ${{ steps.gitversion.outputs.patch }}"
           echo "SemVer: ${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
-        env:
-          VERSION: "${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
+          echo "::set-ouput name=semVer::${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}"
 
       - name: setup node
         uses: actions/setup-node@v1
@@ -58,7 +57,7 @@ jobs:
         with:
           files: '${{github.workspace}}/CHANGELOG.md'
         env:
-          VERSION: "${{ env.VERSION }}"
+          VERSION: "${{ steps.version.outputs.semVer }}"
 
       - name: compile and create vsix
         run: npm run package
@@ -71,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: vsc-prolog-${{ env.VERSION }}.vsix
-          path: ${{github.workspace}}/vsc-prolog-${{ env.VERSION }}.vsix
+          path: ${{github.workspace}}/vsc-prolog-${{ steps.version.outputs.semVer }}.vsix
