@@ -3,7 +3,7 @@
     "displayName": "VSC-Prolog",
     "description": "Support for Prolog language",
     "version": "0.8.23",
-    "publisher": "arthurwang",
+    "publisher": "hargettp",
     "icon": "images/vsplogo.png",
     "license": "MIT",
     "engines": {
@@ -27,15 +27,20 @@
         "name": "Arthur Wang",
         "email": "rthrwang@gmail.com"
     },
+    "contributors": [
+        {
+            "name": "Phil Hargett",
+            "url": "https://github.com/hargettp"
+        }
+    ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/arthwang/vsc-prolog.git"
+        "url": "https://github.com/hargettp/vsc-prolog.git"
     },
     "bugs": {
-        "url": "https://github.com/arthwang/vsc-prolog/issues",
-        "email": "rthrwang@gmail.com"
+        "url": "https://github.com/hargettp/vsc-prolog/issues"
     },
-    "main": "./out/src/extension",
+    "main": "./out/main",
     "activationEvents": [
         "onLanguage:prolog"
     ],
@@ -335,10 +340,10 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "vscode:prepublish": "npm run -S esbuild-base -- --minify",
         "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-        "esbuild": "npm run esbuild-base -- --sourcemap",
-        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+        "esbuild": "npm run -S esbuild-base -- --sourcemap",
+        "esbuild-watch": "npm run -S esbuild-base -- --sourcemap --watch",
         "compile": "tsc -watch -p ./",
         "test": "node ./node_modules/vscode/bin/test",
         "package": "vsce package",
@@ -354,7 +359,7 @@
         "cross-env": "^7.0.3",
         "esbuild": "^0.14.14",
         "typescript": "^4.5.5",
-        "vsce": "^1.102.0"
+        "vsce": "^2.6.7"
     },
     "dependencies": {
         "@vscode/debugadapter": "^1.51.1",
