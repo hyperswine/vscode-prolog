@@ -17,7 +17,7 @@ import {
   DiagnosticCollection
 } from "vscode";
 
-interface ISnippet {
+export interface ISnippet {
   [predIndicator: string]: {
     prefix: string;
     body: string[];
@@ -37,13 +37,15 @@ export interface IPredicate {
 }
 
 export class Utils {
-  private static snippets: ISnippet = null;
+  public static snippets: ISnippet = null;
+  public static newsnippets = [];
   private static predModules: IPredModule = null;
   public static DIALECT: string | null = null;
   public static RUNTIMEPATH: string | null = null;
   public static CONTEXT: ExtensionContext | null = null;
   public static LINTERTRIGGER: string | null = null;
   public static FORMATENABLED: boolean;
+  public static EXPATH: string | null = null;
 
   constructor() { }
   public static getPredDescriptions(pred: string): string {
@@ -64,12 +66,12 @@ export class Utils {
       return;
     }
     let snippetsPath = context.extensionPath + "/snippets/prolog.json";
+    console.log("lecture")
     let snippets = fs.readFileSync(snippetsPath, "utf8").toString();
     Utils.snippets = JSON.parse(snippets);
   }
 
-  private static genPredicateModules(context: ExtensionContext) {
-    Utils.loadSnippets(context);
+  public static genPredicateModules(context: ExtensionContext) {
     Utils.predModules = <IPredModule>new Object();
     let pred, mod: string;
     for (let p in Utils.snippets) {

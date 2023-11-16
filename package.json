@@ -3,7 +3,7 @@
     "displayName": "VSC-Prolog",
     "description": "Support for Prolog language",
     "version": "0.9.0",
-    "publisher": "hargettp",
+    "publisher": "arthurwang",
     "icon": "images/vsplogo.png",
     "license": "MIT",
     "engines": {
@@ -31,6 +31,12 @@
         {
             "name": "Phil Hargett",
             "url": "https://github.com/hargettp"
+        },
+        {
+            "name": "Amaury Rabouan"
+        },
+        {
+            "name": "Guillaume Nollet"
         }
     ],
     "repository": {
@@ -40,7 +46,7 @@
     "bugs": {
         "url": "https://github.com/hargettp/vsc-prolog/issues"
     },
-    "main": "./out/main",
+    "main": "./out/src/extension",
     "activationEvents": [
         "onLanguage:prolog"
     ],

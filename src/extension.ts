@@ -11,6 +11,7 @@ import {
   languages,
   DocumentHighlightProvider,
   Location,
+  Disposable,
   workspace
 } from "vscode";
 import * as path from "path";
@@ -20,6 +21,7 @@ import { Utils } from "./utils/utils";
 import PrologHoverProvider from "./features/hoverProvider";
 import PrologDocumentHighlightProvider from "./features/documentHighlightProvider";
 import PrologDocumentFormatter from "./features/formattingEditProvider";
+import { SnippetUpdater ,SnippetUpdaterController, PrologCompletionProvider} from "./features/updateSnippets";
 import { PrologDefinitionProvider } from "./features/definitionProvider";
 import { PrologReferenceProvider } from "./features/referenceProvider";
 import PrologLinter from "./features/prologLinter";
@@ -34,10 +36,10 @@ async function initForDialect(context: ExtensionContext) {
   const exec = section.get<string>("executablePath", "swipl");
   Utils.LINTERTRIGGER = section.get<string>("linter.run");
   Utils.FORMATENABLED = section.get<boolean>("format.enabled");
-
   Utils.DIALECT = dialect;
   Utils.RUNTIMEPATH = jsesc(exec);
   const exPath = jsesc(context.extensionPath);
+  Utils.EXPATH = exPath;
   const diaFile = path.resolve(`${exPath}/.vscode`) + "/dialect.json";
   const lastDialect = JSON.parse(fs.readFileSync(diaFile).toString()).dialect;
   if (lastDialect === dialect) {
@@ -182,7 +184,27 @@ export async function activate(context: ExtensionContext) {
   );
   context.subscriptions.push(PrologTerminal.init());
   // context.subscriptions.push(prologDebugger);
+
+  // Add to a list of disposables which are disposed when this extension is deactivated.
+  let snippetUpdater = new SnippetUpdater();
+  context.subscriptions.push(new SnippetUpdaterController(snippetUpdater));
+  context.subscriptions.push(snippetUpdater);
+
+
+  context.subscriptions.push(
+    languages.registerCompletionItemProvider(PROLOG_MODE,new PrologCompletionProvider())
+  )
 }
+
+
+
+
+
+
+
+
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
+
+

@@ -1,20 +1,21 @@
 "use strict";
 import {
   HoverProvider,
-  MarkedString,
+  MarkdownString,
   Position,
   TextDocument,
   CancellationToken,
   Hover,
   Range,
-  workspace
+  workspace,
+  languages
 } from "vscode";
 import * as cp from "child_process";
 import { Utils } from "../utils/utils";
 
 export default class PrologHoverProvider implements HoverProvider {
   // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
-  private textToMarkedString(text: string): MarkedString {
+  private textToMarkedString(text: string): MarkdownString["value"]{
     return text.replace(/[\\`*_{}[\]()#+\-.!]/g, "\\$&");
   }
   public provideHover(
@@ -30,23 +31,30 @@ export default class PrologHoverProvider implements HoverProvider {
     if (!pred) {
       return;
     }
-    if (pred.arity < 0) {
+    if (pred.arity <= 0) {
       return;
     }
-    let contents: MarkedString[] = [];
+    let contents= new MarkdownString("",true);
     switch (Utils.DIALECT) {
       case "swi":
         let pi = pred.pi.indexOf(":") > -1 ? pred.pi.split(":")[1] : pred.pi;
         let modules: string[] = Utils.getPredModules(pi);
         if (modules.length === 0) {
           let desc = Utils.getPredDescriptions(pi);
-          contents.push({ language: "prolog", value: desc });
+          if (desc == ""){
+            contents.appendCodeblock(pi,"prolog") ;
+          }else{
+            contents.appendCodeblock(desc,"prolog") ;
+          }
+          
+         
         } else {
           if (modules.length > 0) {
             modules.forEach(module => {
-              contents.push(module + ":" + pi + "\n");
+              contents.appendText(module + ":" + pi + "\n")
               let desc = Utils.getPredDescriptions(module + ":" + pi);
-              contents.push({ language: "prolog", value: desc });
+              contents.appendCodeblock(desc,"prolog")
+  
             });
           }
         }
@@ -54,21 +62,19 @@ export default class PrologHoverProvider implements HoverProvider {
       case "ecl":
         let pro = cp.spawnSync(Utils.RUNTIMEPATH, ["-e", `help(${pred.pi})`]);
         if (pro.status === 0) {
-          contents.push({
-            language: "prolog",
-            value: pro.output
-              .toString()
-              .trim()
-              .replace(/^\W*\n/, "")
-              .replace(/\n{3,}/g, "\n\n")
-              .replace(/  +/g, "  ")
-          });
+          contents.appendCodeblock(pro.output
+            .toString()
+            .trim()
+            .replace(/^\W*\n/, "")
+            .replace(/\n{3,}/g, "\n\n")
+            .replace(/  +/g, "  "),"prolog")
         } else {
           return;
         }
       default:
         break;
     }
-    return contents === [] ? null : new Hover(contents, wordRange);
+    //return contents === [] ? null : new Hover(contents, wordRange);
+    return new Hover(contents, wordRange);
   }
 }

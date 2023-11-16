@@ -20,7 +20,7 @@ export function loadEditHelpers(subscriptions: Disposable[]) {
         decreaseIndentPattern: /(\s*\)|\s*\])$/,
         increaseIndentPattern: /(.*:-\s*|.*-->\s*|.*:->\s*|.*:<-\s*|.+\[|.+\()$/
       },
-      wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+      wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
       onEnterRules: [
         // {
         //   beforeText: /.+:-|:- begin_tests.+\.$/,
