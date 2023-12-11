@@ -137,16 +137,12 @@ isExportedPredicate(Exports, PI) :-
     PI=_:PI1,
     memberchk(PI1, Exports).
 
-write_objects(Module,
-                          Exports,
-                          [doc(PI, Pos, Comment)|T]) :-
+write_objects(Module,Exports,[doc(PI, Pos, Comment)|T]) :-
     is_list(PI), !,
     forall(member(PIMember, PI),
            write_objects1(Module, Exports, PIMember, Pos, Comment)),
     write_objects(Module, Exports, T).
-write_objects(Module,
-                          Exports,
-                          [doc(PI, Pos, Comment)|T]) :-
+write_objects(Module,Exports,[doc(PI, Pos, Comment)|T]) :-
     write_objects1(Module, Exports, PI, Pos, Comment),
     write_objects(Module, Exports, T).
 write_objects(Module, Exports, [_|T]) :-
@@ -345,8 +341,7 @@ filter_dom1([H|T], Filtered) :-
         )
     ->  FH=element(module, [], [Mod]),
         filter_dom1(T, FT),
-        Filtered=[FH|FT]
-    ;   filter_dom1(T, Filtered)
+        Filtered=[FH|FT]; filter_dom1(T, Filtered)
     ), !.
 filter_dom1([H|T], [H|FT]) :-
     H=element(dl, _, [element(dt, [class=pubdef], _)|_]), !,
