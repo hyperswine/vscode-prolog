@@ -463,7 +463,7 @@ update_snippet_dict :-
 
 update_snippet_dict(SnippetItem) :-
     get_dict(prefix, SnippetItem, Prefix),
-    Prefix=~"[()~!@#$:.%&{\\\\[/+\\-<>?= ]", !.
+    Prefix =~"[()~!@#$:.%&{\\\\[/+\\-<>?= ]", !.
 update_snippet_dict(SnippetItem) :-
     nb_getval(snippet_dict, DictIn),
     nb_getval(current_pred, Pred1),
