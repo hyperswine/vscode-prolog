@@ -11,7 +11,7 @@ import {
 import * as cp from "child_process";
 import { Utils } from "../utils/utils";
 import * as path from "path";
-import * as jsesc from "jsesc";
+import  jsesc from "jsesc";
 
 export class PrologDefinitionProvider implements DefinitionProvider {
   public provideDefinition(

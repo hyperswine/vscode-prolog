@@ -41,7 +41,42 @@
         },
         {
           "name": "meta.clause.body.prolog",
-          "match": "."
+          "match": ".\\s"
+        }
+      ]
+    },
+    {
+      "name": "meta.clause.head.ground.prolog",
+      "begin": "^\\s*([a-z][a-zA-Z0-9_]*)(\\()(?=[a-zA-Z0-9_,]*\\)\\s*\\.)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.function.clause.head.ground.prolog"
+        },
+        "2": {
+          "name": "punctuation.definition.parameters.begin"
+        }
+      },
+      "end": "((\\)?))\\s*(\\.)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.parameters.end"
+        },
+        "3": {
+          "name": "keyword.control.clause.bodybegin.prolog"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#builtin"
+        },
+        {
+          "include": "#atom"
+        },
+        {
+          "include": "#variable"
+        },
+        {
+          "include": "#constants"
         }
       ]
     },
@@ -145,7 +180,7 @@
     },
     {
       "name": "meta.fact.prolog",
-      "begin": "^\\s*([a-zA-Z][a-zA-Z0-9_]*)(\\(?)(?!.*(:-|-->).*)",
+      "begin": "^\\s*([a-zA-Z][a-zA-Z0-9_]*)(\\(?)(?!.*(:-|-->|\\)\\s*\\.).*)",
       "beginCaptures": {
         "1": {
           "name": "entity.name.function.fact.prolog"
@@ -294,7 +329,7 @@
       "patterns": [
         {
           "name": "variable.parameter.uppercase.prolog",
-          "match": "(?<![a-zA-Z0-9_])[A-Z][a-zA-Z0-9_\\.]*|(?<=\\.put\\()[a-zA-Z0-9_\/]*"
+          "match": "(?<![a-zA-Z0-9_])([A-Z][a-zA-Z0-9_]*(?:\\.(?!put)[a-zA-Z0-9_]+)*)|(?<=\\.put\\()[a-zA-Z0-9_\/]*"
         },
         {
           "name": "variable.language.anonymous.prolog",

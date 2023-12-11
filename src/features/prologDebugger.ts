@@ -13,7 +13,7 @@ import {
 } from "@vscode/debugadapter";
 import { basename, resolve } from "path";
 // import * as Net from "net";
-import * as jsesc from "jsesc";
+import jsesc from "jsesc";
 
 export interface ITraceCmds {
   continue: string[2];

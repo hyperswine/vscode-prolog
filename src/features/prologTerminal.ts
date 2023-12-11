@@ -10,7 +10,7 @@ import {
   OutputChannel,
   TextEditor
 } from "vscode";
-import * as jsesc from "jsesc";
+import jsesc from "jsesc";
 
 export default class PrologTerminal {
   private static _terminal: Terminal;

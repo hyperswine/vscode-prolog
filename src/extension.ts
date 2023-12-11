@@ -27,7 +27,7 @@ import { PrologReferenceProvider } from "./features/referenceProvider";
 import PrologLinter from "./features/prologLinter";
 import { PrologRefactor } from "./features/prologRefactor";
 import { ensureSymlink, remove } from "fs-extra-plus";
-import * as jsesc from "jsesc";
+import jsesc from "jsesc";
 import * as fs from "fs";
 
 async function initForDialect(context: ExtensionContext) {

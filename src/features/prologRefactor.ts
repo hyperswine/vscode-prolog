@@ -13,7 +13,7 @@ import { IPredicate, Utils } from "../utils/utils";
 import { spawn } from "process-promises";
 import * as fif from "find-in-files";
 import * as fs from "fs";
-import * as jsesc from "jsesc";
+import  jsesc from "jsesc";
 import { resolve } from "path";
 import * as path from "path";
 

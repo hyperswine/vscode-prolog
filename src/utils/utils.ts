@@ -3,7 +3,7 @@ import { basename } from "path";
 import * as fs from "fs";
 import * as YAML from "yamljs";
 import * as cp from "child_process";
-import * as jsesc from "jsesc";
+import  jsesc from "jsesc";
 // import { CompleterResult } from "readline";
 // import { error } from "util";
 import * as path from "path";

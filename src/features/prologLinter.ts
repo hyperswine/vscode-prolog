@@ -1,5 +1,5 @@
 import { truncate, truncateSync } from "fs";
-import * as jsesc from "jsesc";
+import  jsesc from "jsesc";
 import { spawn } from "process-promises";
 import {
   CancellationToken,

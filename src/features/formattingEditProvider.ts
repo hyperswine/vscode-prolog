@@ -17,7 +17,7 @@ import {
   Position,
   extensions
 } from "vscode";
-import * as jsesc from "js-string-escape";
+import jsesc from "js-string-escape";
 // import * as jsesc from "jsesc";
 import { Utils } from "../utils/utils";
 import { extname } from "path";
