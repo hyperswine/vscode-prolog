@@ -303,11 +303,14 @@
             {
               "include": "#comments"
             },
-           {
+            {
               "include": "#variable"
             },
             {
               "include": "#atom"
+            },
+            {
+              "include": "#constants"
             },
             {
               "name": "meta.if.body.prolog",
