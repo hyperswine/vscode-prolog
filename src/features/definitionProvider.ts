@@ -12,7 +12,6 @@ import * as cp from "child_process";
 import { Utils } from "../utils/utils";
 import * as path from "path";
 import  jsesc from "jsesc";
-
 export class PrologDefinitionProvider implements DefinitionProvider {
   public provideDefinition(
     doc: TextDocument,
@@ -21,6 +20,7 @@ export class PrologDefinitionProvider implements DefinitionProvider {
   ): Location | Thenable<Location> {
     let location: Location = null;
     let pred = Utils.getPredicateUnderCursor(doc, position);
+    console.log(pred)
     if (!pred) {
       return null;
     }
@@ -35,20 +35,23 @@ export class PrologDefinitionProvider implements DefinitionProvider {
 
     switch (Utils.DIALECT) {
       case "swi":
+        var pred_void = pred.functor +"(";
+        for(let i =0 ; i < pred.arity ;i++){
+          pred_void = pred_void + "_";
+          if( i< pred.arity-1){
+            pred_void = pred_void + ",";
+          }
+        }
+        pred_void = pred_void + ")";
         args = ["-q", doc.fileName];
         prologCode = `
         source_location:-
-          (current_predicate(${pred.pi}) ->
-            Pred = ${pred.wholePred}
-          ; DcgArity is ${pred.arity + 2},
-            functor(Term, ${pred.functor}, DcgArity),
-            Pred = ${pred.module}:Term
-          ),
-          predicate_property(Pred, file(File)),
-          predicate_property(Pred, line_count(Line)),
+          predicate_property(${pred_void}, file(File)),
+          predicate_property(${pred_void}, line_count(Line)),
           format("File:~s;Line:~d~n", [File, Line]).
           `;
         if (doc.isDirty) {
+          console.log("dirty")
           doc.save().then(_ => {
             result = Utils.execPrologSync(
               args,
@@ -59,6 +62,7 @@ export class PrologDefinitionProvider implements DefinitionProvider {
             );
           });
         } else {
+          console.log("else")
           result = Utils.execPrologSync(
             args,
             prologCode,
@@ -66,6 +70,7 @@ export class PrologDefinitionProvider implements DefinitionProvider {
             "",
             fileLineRe
           );
+          console.log(result)
         }
         break;
 
@@ -77,7 +82,7 @@ export class PrologDefinitionProvider implements DefinitionProvider {
           source_location('${jsesc(doc.fileName)}', ${predToFind}).
           `;
         runOptions = {
-          cwd: workspace.rootPath,
+          cwd: workspace.workspaceFolders[0].uri.fsPath,
           encoding: "utf8",
           input: prologCode
         };
@@ -101,6 +106,7 @@ export class PrologDefinitionProvider implements DefinitionProvider {
     }
 
     if (result) {
+      console.log(result)
       let fileName: string = result[1];
       let lineNum: number = parseInt(result[2]);
       location = new Location(Uri.file(fileName), new Position(lineNum - 1, 0));

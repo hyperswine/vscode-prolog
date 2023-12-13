@@ -78,7 +78,6 @@ async function initForDialect(context: ExtensionContext) {
 // your extension is activated the very first time the command is executed
 export async function activate(context: ExtensionContext) {
   console.log('Congratulations, your extension "vsc-prolog" is now active!');
-
   await initForDialect(context);
 
   const PROLOG_MODE: DocumentFilter = { language: "prolog", scheme: "file" };

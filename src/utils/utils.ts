@@ -113,7 +113,6 @@ export class Utils {
     if (!wordRange) {
       return null;
     }
-
     let predName: string = doc.getText(wordRange);
     let re = new RegExp("^" + predName + "\\s*\\(");
     let re1 = new RegExp("^" + predName + "\\s*\\/\\s*(\\d+)");
@@ -149,7 +148,6 @@ export class Utils {
       wholePred = text.slice(0, i);
       arity = Utils.getPredicateArity(wholePred);
       params = wholePred.slice(predName.length);
-
       // find the module if a predicate is picked in :-module or :-use_module
     } else if (re1.test(text)) {
       arity = parseInt(text.match(re1)[1]);
@@ -311,7 +309,6 @@ export class Utils {
       default:
         break;
     }
-
     let result = Utils.execPrologSync(
       args,
       plCode,
@@ -343,7 +340,7 @@ export class Utils {
           halt.
         `;
         runOptions = {
-          cwd: workspace.rootPath,
+          cwd: workspace.workspaceFolders[0].uri.fsPath,
           encoding: "utf8",
           input: input
         };
@@ -358,7 +355,7 @@ export class Utils {
           }\n\"), read, S),compile(stream(S)),close(S),call(${call}).`
         ]);
         runOptions = {
-          cwd: workspace.rootPath,
+          cwd: workspace.workspaceFolders[0].uri.fsPath,
           encoding: "utf8",
           input: input
         };

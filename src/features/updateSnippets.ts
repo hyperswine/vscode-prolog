@@ -32,7 +32,6 @@ export   class SnippetUpdater {
       } 
 
       let doc = editor.document; 
-
       // Only update status if an prolog file 
       if (doc.languageId === "prolog") { 
         var predicats = this._getPredicat(doc); 
