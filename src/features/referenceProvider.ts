@@ -8,8 +8,10 @@ import {
   CancellationToken,
   Location,
   window,
+  workspace,
   Uri
 } from "vscode";
+import * as fs from "fs";
 import { spawn } from "process-promises";
 
 export class PrologReferenceProvider implements ReferenceProvider {
@@ -24,8 +26,17 @@ export class PrologReferenceProvider implements ReferenceProvider {
     let pred = Utils.getPredicateUnderCursor(doc, position);
     var regex= "\\((.|\\s)*?\\)"
     const regexp = new RegExp(pred.functor+regex,"gm");
+    const regexpModule = /^\s*:-\s*use_module\(([a-z][a-zA-Z0-9_\/]*)\s*(,|\)\s*\.)/gm;
+    const arrayModule = [...docContent.matchAll(regexpModule)]
+    const prolog = doc.fileName.split(".")[1]
     const array = [...docContent.matchAll(regexp)];
-    return array.map((elem)=>new Location(Uri.file(doc.fileName),findLineColForByte(docContent,elem.index))); 
+    var locations =array.map((elem)=>new Location(Uri.file(doc.fileName),findLineColForByte(docContent,elem.index)));
+    for(let i = 0 ; i < arrayModule.length;i++){
+        var text=fs.readFileSync(workspace.workspaceFolders[0].uri.fsPath+"/"+arrayModule[i][1]+"."+prolog, 'utf8');
+        const array = [...text.matchAll(regexp)];
+        locations = locations.concat(array.map((elem)=>new Location(Uri.file(workspace.workspaceFolders[0].uri.fsPath+"/"+arrayModule[i][1]+"."+prolog),findLineColForByte(text,elem.index))));
+    }
+    return locations
   }
 }
 
