@@ -22,7 +22,7 @@ export class PrologReferenceProvider implements ReferenceProvider {
   ): Location[] {
     let docContent = doc.getText(); 
     let pred = Utils.getPredicateUnderCursor(doc, position);
-    var regex= "\\(\\s*([a-zA-Z0-9_~\\(\\)\\[\\]'\" :,\\s{}]*)\\s*\\)"
+    var regex= "\\((.|\\s)*?\\)"
     const regexp = new RegExp(pred.functor+regex,"gm");
     const array = [...docContent.matchAll(regexp)];
     return array.map((elem)=>new Location(Uri.file(doc.fileName),findLineColForByte(docContent,elem.index))); 
