@@ -211,7 +211,7 @@ export class Utils {
     }
 
     const fileName = jsesc(window.activeTextEditor.document.fileName);
-    if (!module) {
+    /*if (!module) {
       let modMatch = docTxt
         .slice(0, doc.offsetAt(wordRange.start))
         .match(/([\S]+)\s*:\s*$/);
@@ -266,7 +266,7 @@ export class Utils {
           module = null;
         }
       }
-    }
+    }*/
 
     return {
       wholePred: module ? module + ":" + wholePred : wholePred,

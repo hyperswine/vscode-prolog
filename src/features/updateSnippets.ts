@@ -63,10 +63,19 @@ export   class SnippetUpdater {
   public _getPredicat(doc: TextDocument)  { 
 
       let docContent = doc.getText(); 
-      const regexp = /^\s*([a-z][a-zA-Z0-9_]*)\(([a-zA-Z0-9_\-,]*)\)(?=.*:-.*)/gm;
+      const regexp = /^\s*([a-z][a-zA-Z0-9_]*)\(([a-zA-Z0-9_\-, ]*)\)(?=.*:-.*)/gm;
+      const regexpModule = /^\s*:-\s*use_module\(([a-z][a-zA-Z0-9_\/]*)\s*\)\s*\./gm;
+      const arrayModule = [...docContent.matchAll(regexpModule)]
+      const prolog = doc.fileName.split(".")[1]
+      var predicats = [];
+      for(let i = 0 ; i < arrayModule.length;i++){
+          var text=fs.readFileSync(workspace.workspaceFolders[0].uri.fsPath+"/"+arrayModule[i][1]+"."+prolog, 'utf8');
+          const array2 = [...text.matchAll(regexp)]
+          predicats = predicats.concat(array2.map(function(value) { return [value[1],value[2]]; }));
+      }
       const array = [...docContent.matchAll(regexp)]
-      var predicats = array.map(function(value) { return [value[1],value[2]]; });
-      predicats = predicats.filter(function (predicat) {return predicat[0]!= "test"})
+      predicats = predicats.concat(array.map(function(value) { return [value[1],value[2]]; }));
+      predicats = predicats.filter(function (predicat) {return predicat[0]!= "test"});
       return predicats; 
   } 
   dispose() {
