@@ -13,7 +13,7 @@
     },
     {
       "name": "meta.clause.body.prolog",
-      "begin": "(?<=:-)\\s*",
+      "begin": "(?<=(:-|=>))\\s*",
       "end": "(\\.(?=\\s+))",
       "endCaptures": {
         "1": {
@@ -82,16 +82,16 @@
     },
     {
       "name": "meta.clause.head.prolog",
-      "begin": "^\\s*([a-z][a-zA-Z0-9_]*)(\\(?)(?=.*:-.*)",
+      "begin": "^\\s*([a-z][a-zA-Z0-9_]*)(\\(?)(?=.*(:-|=>).*)",
       "beginCaptures": {
         "1": {
           "name": "entity.name.function.clause.prolog"
         },
-        "2": {
+        "3": {
           "name": "punctuation.definition.parameters.begin"
         }
       },
-      "end": "((\\)?))\\s*(:-)",
+      "end": "((\\)?))\\s*(:-|=>)",
       "endCaptures": {
         "1": {
           "name": "punctuation.definition.parameters.end"
@@ -239,7 +239,7 @@
         },
         {
           "name": "support.function.created.prolog",
-          "match": "[a-zA-Z][a-zA-Z0-9_]*(?=\\()"
+          "match": "[a-z][a-zA-Z0-9_]*(?=\\()"
         }
       ]
     },
@@ -303,14 +303,11 @@
             {
               "include": "#comments"
             },
-            {
+           {
               "include": "#variable"
             },
             {
               "include": "#atom"
-            },
-            {
-              "include": "#constants"
             },
             {
               "name": "meta.if.body.prolog",
