@@ -1,14 +1,14 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "files.exclude": {
-        "out": false // set this to true to hide the "out" folder with the compiled JS files
-    },
-    "search.exclude": {
-        "out": true // set this to false to include "out" folder in search results
-    },
-    "editor.tabSize": 2,
-    "yaml.schemas": {
-        "https://json.schemastore.org/github-workflow.json": "file:///workspace/vsc-prolog/.github/workflows/build.yaml"
-    },
-    "editor.suggest.snippetsPreventQuickSuggestions": false
+  "files.exclude": {
+    "out": false // set this to true to hide the "out" folder with the compiled JS files
+  },
+  "search.exclude": {
+    "out": true // set this to false to include "out" folder in search results
+  },
+  "editor.tabSize": 2,
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": "file:///workspace/vsc-prolog/.github/workflows/build.yaml"
+  },
+  "editor.suggest.snippetsPreventQuickSuggestions": false
 }

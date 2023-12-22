@@ -152,9 +152,9 @@ write_objects(_, _, []).
 write_objects1(_, Exports, PI, _, _) :-
     \+ isExportedPredicate(Exports, PI), !.
 write_objects1(_, _, PI, _, _) :-
-    PI=_:Pred/_,
+    PI = _:Pred/_,
     % exclude these kinds of predicates in snippets
-    Pred=~"[()~!@#:.%&{\\\\[/+\\-<>?= ]", !.
+    Pred = ~"[()~!@#:.%&{\\\\[/+\\-<>?= ]", !.
 write_objects1(Module, _, PI, Pos, Comment) :-
     PI=Module:Pred/Arity,
     (   atom_concat($, _, Pred)

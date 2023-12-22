@@ -1,5 +1,5 @@
-%%
 :- module(formatter,[]).
+
 :- use_module(library(http/json), [atom_json_dict/3]).
 :- use_module(library(memfile)).
 
