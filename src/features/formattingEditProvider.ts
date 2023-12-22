@@ -1,6 +1,6 @@
 import * as os from "os";
-("use strict");
-import { spawn } from "process-promises";
+("use strict")
+import { spawn } from "process-promises"
 import {
   CancellationToken,
   DocumentFormattingEditProvider,
@@ -15,91 +15,89 @@ import {
   workspace,
   WorkspaceConfiguration,
   Position,
-  extensions
-} from "vscode";
-import jsesc from "js-string-escape";
-// import * as jsesc from "jsesc";
-import { Utils } from "../utils/utils";
-import { extname } from "path";
-import * as path from "path";
+} from "vscode"
+import jsesc from "js-string-escape"
+import { Utils } from "../utils/utils"
+import * as path from "path"
 
 interface IComment {
-  location: number; // character location in the range
-  comment: string;
+  // character location in the range
+  location: number
+  comment: string
 }
 
 interface ITermInfo {
-  startLine: number;
-  startChar: number;
-  isValid: boolean;
-  termStr: string;
-  comments: IComment[];
-  endLine?: number;
-  endChar?: number;
-  charsSofar?: number;
+  startLine: number
+  startChar: number
+  isValid: boolean
+  termStr: string
+  comments: IComment[]
+  endLine?: number
+  endChar?: number
+  charsSofar?: number
 }
 
 export default class PrologDocumentFormatter
   implements DocumentRangeFormattingEditProvider,
-    DocumentFormattingEditProvider,
-    OnTypeFormattingEditProvider {
-  private _section: WorkspaceConfiguration;
-  private _tabSize: number;
-  private _insertSpaces: boolean;
-  private _tabDistance: number;
-  private _executable: string;
-  private _args: string[];
-  private _outputChannel: OutputChannel;
+  DocumentFormattingEditProvider,
+  OnTypeFormattingEditProvider {
+  private _section: WorkspaceConfiguration
+  private _tabSize: number
+  private _insertSpaces: boolean
+  private _tabDistance: number
+  private _executable: string
+  private _args: string[]
+  private _outputChannel: OutputChannel
   private _textEdits: TextEdit[] = [];
   private _currentTermInfo: ITermInfo = null;
-  private _startChars: number;
+  private _startChars: number
 
   constructor() {
-    this._section = workspace.getConfiguration("prolog");
-    this._tabSize = this._section.get("format.tabSize", 4);
-    this._insertSpaces = this._section.get("format.insertSpaces", true);
-    this._tabDistance = this._insertSpaces ? 0 : this._tabSize;
-    this._executable = this._section.get("executablePath", "swipl");
-    this._args = [];
-    this._outputChannel = window.createOutputChannel("PrologFormatter");
+    this._section = workspace.getConfiguration("prolog")
+    this._tabSize = this._section.get("format.tabSize", 4)
+    this._insertSpaces = this._section.get("format.insertSpaces", true)
+    this._tabDistance = this._insertSpaces ? 0 : this._tabSize
+    this._executable = this._section.get("executablePath", "swipl")
+    this._args = []
+    this._outputChannel = window.createOutputChannel("PrologFormatter")
   }
 
   private getClauseHeadStart(doc: TextDocument, line: number): Position {
-    const headReg = /^\s*[\s\S]+?(?=:-|-->)/;
-    const lineTxt = doc.lineAt(line).text;
-    let match = lineTxt.match(headReg);
+    const headReg = /^\s*[\s\S]+?(?=:-|-->)/
+    const lineTxt = doc.lineAt(line).text
+    let match = lineTxt.match(headReg)
     if (match) {
-      let firstNonSpcIndex = lineTxt.match(/[^\s]/).index;
-      return new Position(line, firstNonSpcIndex);
+      let firstNonSpcIndex = lineTxt.match(/[^\s]/).index
+      return new Position(line, firstNonSpcIndex)
     }
-    line--;
+    line--
     if (line < 0) {
-      line = 0;
-      return new Position(0, 0);
+      line = 0
+      return new Position(0, 0)
     }
-    return this.getClauseHeadStart(doc, line);
+    return this.getClauseHeadStart(doc, line)
   }
 
   private getClauseEnd(doc: TextDocument, line: number): Position {
-    let lineTxt = doc.lineAt(line).text;
-    let dotIndex = lineTxt.indexOf(".");
+    let lineTxt = doc.lineAt(line).text
+    let dotIndex = lineTxt.indexOf(".")
     while (dotIndex > -1) {
       if (this.isClauseEndDot(doc, new Position(line, dotIndex))) {
-        return new Position(line, dotIndex + 1);
+        return new Position(line, dotIndex + 1)
       }
-      dotIndex = lineTxt.indexOf(".", dotIndex + 1);
+      dotIndex = lineTxt.indexOf(".", dotIndex + 1)
     }
-    line++;
+    line++
     if (line === doc.lineCount) {
-      line--;
-      return new Position(line, lineTxt.length);
+      line--
+      return new Position(line, lineTxt.length)
     }
-    return this.getClauseEnd(doc, line);
+    return this.getClauseEnd(doc, line)
   }
 
   private isClauseEndDot(doc: TextDocument, pos: Position): boolean {
-    const txt = doc.getText();
-    const offset = doc.offsetAt(pos);
+    const txt = doc.getText()
+    const offset = doc.offsetAt(pos)
     const subtxt = txt
       .slice(0, offset + 1)
       .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -107,9 +105,9 @@ export default class PrologDocumentFormatter
       .replace(/\\"/g, "")
       .replace(/"[^\"]*?"/g, "")
       .replace(/'[^\']*?'/g, "")
-      .replace(/%.*\n/g, "");
-    const open = subtxt.lastIndexOf("/*");
-    const close = subtxt.lastIndexOf("*/");
+      .replace(/%.*\n/g, "")
+    const open = subtxt.lastIndexOf("/*")
+    const close = subtxt.lastIndexOf("*/")
     return (
       txt.charAt(offset - 1) !== "." &&
       txt.charAt(offset + 1) !== "." &&
@@ -119,49 +117,49 @@ export default class PrologDocumentFormatter
       subtxt.indexOf('"') === -1 &&
       !/%[^\n]*$/.test(subtxt) &&
       (open === -1 || open < close)
-    );
+    )
   }
 
   private validRange(doc: TextDocument, initRange: Range): Range {
-    const docTxt = doc.getText();
-    let end = docTxt.indexOf(".", doc.offsetAt(initRange.end) - 1);
+    const docTxt = doc.getText()
+    let end = docTxt.indexOf(".", doc.offsetAt(initRange.end) - 1)
     while (end > -1) {
       if (this.isClauseEndDot(doc, doc.positionAt(end))) {
-        break;
+        break
       }
-      end = docTxt.indexOf(".", end + 1);
+      end = docTxt.indexOf(".", end + 1)
     }
     if (end === -1) {
-      end = docTxt.length - 1;
+      end = docTxt.length - 1
     }
-    let endPos = doc.positionAt(end + 1);
+    let endPos = doc.positionAt(end + 1)
 
-    let start = docTxt.slice(0, doc.offsetAt(initRange.start)).lastIndexOf(".");
+    let start = docTxt.slice(0, doc.offsetAt(initRange.start)).lastIndexOf(".")
     while (start > -1) {
       if (this.isClauseEndDot(doc, doc.positionAt(start))) {
-        break;
+        break
       }
-      start = docTxt.slice(0, start - 1).lastIndexOf(".");
+      start = docTxt.slice(0, start - 1).lastIndexOf(".")
     }
 
     if (start === -1) {
-      start = 0;
+      start = 0
     }
 
     if (start > 0) {
-      let nonTermStart = 0;
-      let re: RegExp = /^\s+|^%.*\n|^\/\*.*?\*\//;
-      let txt = docTxt.slice(start + 1);
-      let match = txt.match(re);
+      let nonTermStart = 0
+      let re: RegExp = /^\s+|^%.*\n|^\/\*.*?\*\//
+      let txt = docTxt.slice(start + 1)
+      let match = txt.match(re)
       while (match) {
-        nonTermStart += match[0].length;
-        match = txt.slice(nonTermStart).match(re);
+        nonTermStart += match[0].length
+        match = txt.slice(nonTermStart).match(re)
       }
-      start += nonTermStart;
+      start += nonTermStart
     }
-    let startPos = doc.positionAt(start === 0 ? 0 : start + 1);
+    let startPos = doc.positionAt(start === 0 ? 0 : start + 1)
 
-    return startPos && endPos ? new Range(startPos, endPos) : null;
+    return startPos && endPos ? new Range(startPos, endPos) : null
   }
   public provideDocumentRangeFormattingEdits(
     doc: TextDocument,
@@ -169,7 +167,7 @@ export default class PrologDocumentFormatter
     options: FormattingOptions,
     token: CancellationToken
   ): TextEdit[] | Thenable<TextEdit[]> {
-    return this.getTextEdits(doc, this.validRange(doc, range));
+    return this.getTextEdits(doc, this.validRange(doc, range))
   }
 
   public provideDocumentFormattingEdits(
@@ -183,7 +181,7 @@ export default class PrologDocumentFormatter
         doc.lineCount - 1,
         doc.lineAt(doc.lineCount - 1).text.length
       )
-    );
+    )
   }
 
   public provideOnTypeFormattingEdits(
@@ -206,56 +204,55 @@ export default class PrologDocumentFormatter
         0,
         position.line,
         position.character - 1
-      );
-      return this.getTextEdits(doc, this.validRange(doc, range));
+      )
+      return this.getTextEdits(doc, this.validRange(doc, range))
     } else {
-      return [];
+      return []
     }
   }
 
   private outputMsg(msg: string) {
-    this._outputChannel.append(msg);
-    this._outputChannel.show(true);
+    this._outputChannel.append(msg)
+    this._outputChannel.show(true)
   }
 
   private async getTextEdits(doc: TextDocument, range: Range) {
-    await this.getFormattedCode(doc, range);
-    return this._textEdits;
+    await this.getFormattedCode(doc, range)
+    return this._textEdits
   }
 
   private async getFormattedCode(doc: TextDocument, range: Range) {
-    this._textEdits = [];
-    this._currentTermInfo = null;
-    let docText = jsesc(doc.getText());
-    let rangeTxt = jsesc(doc.getText(range));
-    let goals: string;
+    this._textEdits = []
+    this._currentTermInfo = null
+    let docText = jsesc(doc.getText())
+    let rangeTxt = jsesc(doc.getText(range))
+    let goals: string
 
     switch (Utils.DIALECT) {
       case "swi":
-        this._args = ["--nodebug", "-q"];
-        let pfile = jsesc(path.resolve(`${__dirname}/formatter_swi`));
+        this._args = ["--nodebug", "-q"]
+        let pfile = jsesc(path.resolve(`${__dirname}/formatter_swi`))
         goals = `
           use_module('${pfile}').
-          formatter:format_prolog_source(${this._tabSize}, ${
-          this._tabDistance
-        }, "${rangeTxt}", "${docText}").
-        `;
+          formatter:format_prolog_source(${this._tabSize}, ${this._tabDistance
+          }, "${rangeTxt}", "${docText}").
+        `
 
-        break;
+        break
       case "ecl":
-        let efile = jsesc(path.resolve(`${__dirname}/formatter`));
-        this._args = ["-f", efile];
-        rangeTxt += " end_of_file.";
+        let efile = jsesc(path.resolve(`${__dirname}/formatter`))
+        this._args = ["-f", efile]
+        rangeTxt += " end_of_file."
         goals = `
           format_prolog_source("${rangeTxt}", "${docText}").
-        `;
-        break;
+        `
+        break
       default:
-        break;
+        break
     }
 
-    let termStr = "";
-    let prologProc = null;
+    let termStr = ""
+    let prologProc = null
 
     try {
       let prologChild = await spawn(this._executable, this._args, {
@@ -263,21 +260,21 @@ export default class PrologDocumentFormatter
       })
         .on("process", proc => {
           if (proc.pid) {
-            prologProc = proc;
-            proc.stdin.write(goals);
-            proc.stdin.end();
+            prologProc = proc
+            proc.stdin.write(goals)
+            proc.stdin.end()
           }
         })
         .on("stdout", data => {
           // console.log("data:" + data);
           if (/::::::ALLOVER/.test(data)) {
-            this.resolveTerms(doc, termStr, range, true);
+            this.resolveTerms(doc, termStr, range, true)
           }
           if (/TERMSEGMENTBEGIN:::/.test(data)) {
-            this.resolveTerms(doc, termStr, range);
-            termStr = data + "\n";
+            this.resolveTerms(doc, termStr, range)
+            termStr = data + "\n"
           } else {
-            termStr += data + "\n";
+            termStr += data + "\n"
           }
         })
         .on("stderr", err => {
@@ -285,18 +282,17 @@ export default class PrologDocumentFormatter
           // this.outputMsg(err);
         })
         .on("close", _ => {
-          console.log("closed");
-        });
+          console.log("closed")
+        })
     } catch (error) {
-      let message: string = null;
+      let message: string = null
       if ((<any>error).code === "ENOENT") {
-        message = `Cannot debug the prolog file. The Prolog executable was not found. Correct the 'prolog.executablePath' configure please.`;
+        message = `Cannot debug the prolog file. The Prolog executable was not found. Correct the 'prolog.executablePath' configure please.`
       } else {
         message = error.message
           ? error.message
-          : `Failed to run swipl using path: ${
-              this._executable
-            }. Reason is unknown.`;
+          : `Failed to run swipl using path: ${this._executable
+          }. Reason is unknown.`
       }
     }
   }
@@ -308,49 +304,49 @@ export default class PrologDocumentFormatter
     last: boolean = false
   ) {
     if (!/TERMSEGMENTBEGIN:::/.test(text)) {
-      return;
+      return
     }
-    let varsRe = /VARIABLESBEGIN:::\[([\s\S]*?)\]:::VARIABLESEND/;
-    let termRe = /TERMBEGIN:::\n([\s\S]+?):::TERMEND/;
-    let termPosRe = /TERMPOSBEGIN:::(\d+):::TERMPOSEND/;
-    let termEndRe = /TERMENDBEGIN:::(\d+):::TERMENDEND/;
-    let commsRe = /COMMENTSBIGIN:::([\s\S]*?):::COMMENTSEND/;
+    let varsRe = /VARIABLESBEGIN:::\[([\s\S]*?)\]:::VARIABLESEND/
+    let termRe = /TERMBEGIN:::\n([\s\S]+?):::TERMEND/
+    let termPosRe = /TERMPOSBEGIN:::(\d+):::TERMPOSEND/
+    let termEndRe = /TERMENDBEGIN:::(\d+):::TERMENDEND/
+    let commsRe = /COMMENTSBIGIN:::([\s\S]*?):::COMMENTSEND/
     let term = text.match(termRe),
       vars = text.match(varsRe),
       termPos = text.match(termPosRe),
       termEnd = text.match(termEndRe),
-      comms = text.match(commsRe);
-    let termCharA = parseInt(termPos[1]);
-    let termCharZ = termEnd ? parseInt(termEnd[1]) : undefined;
+      comms = text.match(commsRe)
+    let termCharA = parseInt(termPos[1])
+    let termCharZ = termEnd ? parseInt(termEnd[1]) : undefined
     let commsArr: IComment[] =
-      comms && comms[1] ? JSON.parse(comms[1]).comments : [];
+      comms && comms[1] ? JSON.parse(comms[1]).comments : []
 
     switch (Utils.DIALECT) {
       case "swi":
-        this.resolveTermsSwi(doc, range, last, term, vars, termCharA, commsArr);
-        break;
+        this.resolveTermsSwi(doc, range, last, term, vars, termCharA, commsArr)
+        break
       case "ecl":
         // comments inside of clause
-        let commReg = /\/\*[\s\S]*?\*\/|%.*?(?=\n)/g;
-        let lastTermEnd = termCharA;
+        let commReg = /\/\*[\s\S]*?\*\/|%.*?(?=\n)/g
+        let lastTermEnd = termCharA
         if (commsArr && commsArr[0]) {
-          lastTermEnd = commsArr[0].location;
+          lastTermEnd = commsArr[0].location
         }
         let origTxt = doc
           .getText()
           .slice(
             doc.offsetAt(range.start) + termCharA,
             doc.offsetAt(range.start) + termCharZ
-          );
-        let match: RegExpExecArray;
+          )
+        let match: RegExpExecArray
         while ((match = commReg.exec(origTxt)) !== null) {
-          let m = match[0];
-          let comm: IComment = null;
+          let m = match[0]
+          let comm: IComment = null
           if (m.startsWith("%")) {
             let commPos = doc.positionAt(
               doc.offsetAt(range.start) + termCharA + match.index
-            );
-            let lineStr = doc.lineAt(commPos.line).text;
+            )
+            let lineStr = doc.lineAt(commPos.line).text
             comm = this.handleLineComment(
               doc,
               lineStr,
@@ -358,15 +354,15 @@ export default class PrologDocumentFormatter
               match.index,
               commPos.character,
               commsArr
-            );
+            )
           } else {
             comm = {
               location: match.index,
               comment: m
-            };
+            }
           }
           if (comm !== null) {
-            commsArr.push(comm);
+            commsArr.push(comm)
           }
         }
         this.resolveTermsEcl(
@@ -378,10 +374,10 @@ export default class PrologDocumentFormatter
           termCharA,
           termCharZ,
           commsArr
-        );
-        break;
+        )
+        break
       default:
-        break;
+        break
     }
   }
 
@@ -394,18 +390,18 @@ export default class PrologDocumentFormatter
     commsArr: IComment[]
   ): IComment {
     if (lineStr.replace(/^\s*/, "") === originalMatched) {
-      return { location: index, comment: originalMatched };
+      return { location: index, comment: originalMatched }
     }
-    let i = charPos;
-    let docText = jsesc(doc.getText(), { quotes: "double" });
+    let i = charPos
+    let docText = jsesc(doc.getText(), { quotes: "double" })
     while (i > -1) {
-      let termStr = lineStr.slice(0, i).replace(/(,|;|\.)\s*$/, "");
+      let termStr = lineStr.slice(0, i).replace(/(,|;|\.)\s*$/, "")
       if (Utils.isValidEclTerm(docText, termStr)) {
-        return { location: index + i - charPos, comment: lineStr.slice(i) };
+        return { location: index + i - charPos, comment: lineStr.slice(i) }
       }
-      i = lineStr.indexOf("%", i + 1);
+      i = lineStr.indexOf("%", i + 1)
     }
-    return null;
+    return null
   }
   private resolveTermsSwi(
     doc: TextDocument,
@@ -416,20 +412,20 @@ export default class PrologDocumentFormatter
     termCharA: number,
     commsArr: IComment[]
   ) {
-    let formattedTerm = this.restoreVariableNames(term[1], vars[1].split(","));
+    let formattedTerm = this.restoreVariableNames(term[1], vars[1].split(","))
     if (last) {
-      termCharA++; // end_of_file offset of memory file
+      termCharA++ // end_of_file offset of memory file
     }
     if (commsArr.length > 0) {
       termCharA =
-        termCharA < commsArr[0].location ? termCharA : commsArr[0].location;
+        termCharA < commsArr[0].location ? termCharA : commsArr[0].location
       commsArr.forEach((comm: IComment) => {
-        comm.location -= termCharA;
-      });
+        comm.location -= termCharA
+      })
     }
 
     if (!this._currentTermInfo) {
-      this._startChars = doc.offsetAt(range.start);
+      this._startChars = doc.offsetAt(range.start)
       this._currentTermInfo = {
         charsSofar: 0,
         startLine: range.start.line,
@@ -437,36 +433,36 @@ export default class PrologDocumentFormatter
         isValid: vars[1] === "givingup" ? false : true,
         termStr: formattedTerm,
         comments: commsArr
-      };
+      }
     } else {
-      let endPos = doc.positionAt(termCharA + this._startChars);
-      this._currentTermInfo.endLine = endPos.line;
-      this._currentTermInfo.endChar = endPos.character;
+      let endPos = doc.positionAt(termCharA + this._startChars)
+      this._currentTermInfo.endLine = endPos.line
+      this._currentTermInfo.endChar = endPos.character
       if (this._currentTermInfo.isValid) {
         // preserve original gaps between terms
         let lastAfterTerm = doc
           .getText()
           .slice(this._currentTermInfo.charsSofar, termCharA + this._startChars)
-          .match(/\s*$/)[0];
+          .match(/\s*$/)[0]
         this._currentTermInfo.termStr = this._currentTermInfo.termStr.replace(
           /\s*$/, // replace new line produced by portray_clause with original gaps
           lastAfterTerm
-        );
-        this.generateTextEdit(doc);
+        )
+        this.generateTextEdit(doc)
       }
 
-      this._currentTermInfo.charsSofar = termCharA + this._startChars;
-      this._currentTermInfo.startLine = this._currentTermInfo.endLine;
-      this._currentTermInfo.startChar = this._currentTermInfo.endChar;
-      this._currentTermInfo.termStr = formattedTerm;
-      this._currentTermInfo.isValid = vars[1] === "givingup" ? false : true;
-      this._currentTermInfo.comments = commsArr;
+      this._currentTermInfo.charsSofar = termCharA + this._startChars
+      this._currentTermInfo.startLine = this._currentTermInfo.endLine
+      this._currentTermInfo.startChar = this._currentTermInfo.endChar
+      this._currentTermInfo.termStr = formattedTerm
+      this._currentTermInfo.isValid = vars[1] === "givingup" ? false : true
+      this._currentTermInfo.comments = commsArr
       if (last) {
-        this._currentTermInfo.endLine = range.end.line;
-        this._currentTermInfo.endChar = range.end.character;
+        this._currentTermInfo.endLine = range.end.line
+        this._currentTermInfo.endChar = range.end.character
         if (this._currentTermInfo.comments.length > 0) {
-          this._currentTermInfo.termStr = "";
-          this.generateTextEdit(doc);
+          this._currentTermInfo.termStr = ""
+          this.generateTextEdit(doc)
         }
       }
     }
@@ -484,9 +480,9 @@ export default class PrologDocumentFormatter
   ) {
     let formattedTerm = this.restoreVariableNames(term[1], vars[1].split(","))
       .replace(/\b_\d+\b/g, "_")
-      .replace(/\s*$/, "");
-    termCharA += doc.offsetAt(range.start);
-    termCharZ += doc.offsetAt(range.start);
+      .replace(/\s*$/, "")
+    termCharA += doc.offsetAt(range.start)
+    termCharZ += doc.offsetAt(range.start)
     this._currentTermInfo = {
       startLine: doc.positionAt(termCharA).line,
       startChar: doc.positionAt(termCharA).character,
@@ -495,8 +491,8 @@ export default class PrologDocumentFormatter
       isValid: true,
       termStr: formattedTerm,
       comments: commsArr
-    };
-    this.generateTextEdit(doc);
+    }
+    this.generateTextEdit(doc)
   }
   private generateTextEdit(doc: TextDocument) {
     let termRange = new Range(
@@ -504,24 +500,24 @@ export default class PrologDocumentFormatter
       this._currentTermInfo.startChar,
       this._currentTermInfo.endLine,
       this._currentTermInfo.endChar
-    );
+    )
     if (this._currentTermInfo.comments.length > 0) {
       let newComms = this.mergeComments(
         doc,
         termRange,
         this._currentTermInfo.comments
-      );
+      )
       this._currentTermInfo.termStr = this.getTextWithComments(
         doc,
         termRange,
         this._currentTermInfo.termStr,
         newComms
-      );
+      )
     }
     if (this._currentTermInfo.termStr !== "") {
       this._textEdits.push(
         new TextEdit(termRange, this._currentTermInfo.termStr)
-      );
+      )
     }
   }
 
@@ -531,25 +527,25 @@ export default class PrologDocumentFormatter
     range: Range,
     comms: IComment[]
   ): IComment[] {
-    let origTxt = doc.getText(range);
-    let newComms: IComment[] = [];
-    newComms.push(comms[0]);
-    let i = 1;
+    let origTxt = doc.getText(range)
+    let newComms: IComment[] = []
+    newComms.push(comms[0])
+    let i = 1
     while (i < comms.length) {
-      let loc = comms[i].location;
-      let last = newComms.length - 1;
-      let lastLoc = newComms[last].location;
-      let lastComm = newComms[last].comment;
-      let lastEnd = lastLoc + lastComm.length;
-      let middleTxt = origTxt.slice(lastEnd, comms[i].location);
+      let loc = comms[i].location
+      let last = newComms.length - 1
+      let lastLoc = newComms[last].location
+      let lastComm = newComms[last].comment
+      let lastEnd = lastLoc + lastComm.length
+      let middleTxt = origTxt.slice(lastEnd, comms[i].location)
       if (middleTxt.replace(/\s|\r?\n|\t/g, "").length === 0) {
-        newComms[last].comment += middleTxt + comms[i].comment;
+        newComms[last].comment += middleTxt + comms[i].comment
       } else {
-        newComms.push(comms[i]);
+        newComms.push(comms[i])
       }
-      i++;
+      i++
     }
-    return newComms;
+    return newComms
   }
   private getTextWithComments(
     doc: TextDocument,
@@ -557,94 +553,94 @@ export default class PrologDocumentFormatter
     formatedText: string,
     comms: IComment[]
   ): string {
-    let origTxt = doc.getText(range);
+    let origTxt = doc.getText(range)
 
-    let chars = origTxt.length;
-    let txtWithComm = "";
-    let lastOrigPos = 0;
+    let chars = origTxt.length
+    let txtWithComm = ""
+    let lastOrigPos = 0
     for (let i = 0; i < comms.length; i++) {
-      let index = comms[i].location;
-      let comment = comms[i].comment;
-      let origSeg = origTxt.slice(lastOrigPos, index);
+      let index = comms[i].location
+      let comment = comms[i].comment
+      let origSeg = origTxt.slice(lastOrigPos, index)
 
-      let noSpaceOrig = origSeg.replace(/[\s()]/g, "");
-      lastOrigPos = index + comment.length;
+      let noSpaceOrig = origSeg.replace(/[\s()]/g, "")
+      lastOrigPos = index + comment.length
       let j = 0,
-        noSpaceFormatted: string = "";
+        noSpaceFormatted: string = ""
       while (j < chars) {
         if (noSpaceFormatted === noSpaceOrig) {
           if (origTxt.slice(index + comment.length).startsWith(os.EOL)) {
-            comment += os.EOL;
-            lastOrigPos += os.EOL.length;
+            comment += os.EOL
+            lastOrigPos += os.EOL.length
           }
           // if (origTxt.charAt(index + comment.length) === os.EOL) {
           //   comment += os.EOL;
           //   lastOrigPos += os.EOL.length;
           // }
 
-          let tail = origSeg.match(/([()\s]*[()])?(\s*)$/);
-          let spaces = tail[2];
+          let tail = origSeg.match(/([()\s]*[()])?(\s*)$/)
+          let spaces = tail[2]
           if (spaces.length > 0) {
-            comment = spaces + comment;
+            comment = spaces + comment
           }
-          let tail1 = tail[1] ? tail[1] : "";
-          txtWithComm += formatedText.slice(0, j) + tail1 + comment;
+          let tail1 = tail[1] ? tail[1] : ""
+          txtWithComm += formatedText.slice(0, j) + tail1 + comment
           formatedText = formatedText
             .slice(j + tail1.length)
-            .replace(/^\r?\n/, "");
-          break;
+            .replace(/^\r?\n/, "")
+          break
         }
 
-        let char = formatedText.charAt(j);
+        let char = formatedText.charAt(j)
         if (!/[\s()]/.test(char)) {
-          noSpaceFormatted += char;
+          noSpaceFormatted += char
         }
-        j++;
+        j++
       }
     }
-    return txtWithComm + formatedText;
+    return txtWithComm + formatedText
   }
 
   private restoreVariableNames(text: string, vars: string[]): string {
     if (vars.length === 1 && vars[0] === "") {
-      return text;
+      return text
     }
     if (vars.length === 0) {
-      return text;
+      return text
     }
-    let dups: { newVars: string[]; dup: string[] } = this.getDups(vars);
+    let dups: { newVars: string[]; dup: string[] } = this.getDups(vars)
     dups.newVars.forEach(pair => {
-      let [abc, orig] = pair.split(":");
+      let [abc, orig] = pair.split(":")
       text = text.replace(
         new RegExp("\\b" + abc.trim() + "\\b", "g"),
         orig.trim()
-      );
-    });
-    return this.restoreVariableNames(text, dups.dup);
+      )
+    })
+    return this.restoreVariableNames(text, dups.dup)
   }
 
   private getDups(vars: string[]) {
-    let left: string[] = new Array<string>(vars.length);
-    let right: string[] = new Array<string>(vars.length);
+    let left: string[] = new Array<string>(vars.length)
+    let right: string[] = new Array<string>(vars.length)
     for (let i = 0; i < vars.length; i++) {
-      [left[i], right[i]] = vars[i].split(":");
+      [left[i], right[i]] = vars[i].split(":")
     }
-    let dup: string[] = [];
-    let index: number;
+    let dup: string[] = []
+    let index: number
     for (let i = 0; i < vars.length; i++) {
       if ((index = right.indexOf(left[i])) > -1) {
-        let tmp = right[index] + right[index];
+        let tmp = right[index] + right[index]
         while (right.indexOf(tmp) > -1) {
-          tmp += right[index];
+          tmp += right[index]
         }
-        vars[index] = left[index] + ":" + tmp;
-        dup.push(tmp + ":" + right[index]);
+        vars[index] = left[index] + ":" + tmp
+        dup.push(tmp + ":" + right[index])
       }
     }
 
     return {
       newVars: vars,
       dup: dup
-    };
+    }
   }
 }
