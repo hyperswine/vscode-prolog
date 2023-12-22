@@ -1,75 +1,36 @@
-/**
-*   debugger.pl
-*/
-:- module(prolog_debugger,
-          [ load_source_file/1,
-            startup/1
-          ]).
-
-:- (dynamic subterm_pos/4, clause_handled/2, file_chars/2, file_chars_computed/1, user:prolog_trace_interception/4, file_lines/2, file_line_start_end/4, file_lines_computed/1).
-
+:- module(prolog_debugger, [load_source_file/1, startup/1]).
 :- use_module(library(http/json)).
-
+:- (dynamic subterm_pos/4, clause_handled/2, file_chars/2, file_chars_computed/1, user:prolog_trace_interception/4, file_lines/2, file_line_start_end/4, file_lines_computed/1).
 :- (initialization init).
 
-init :-
-    nb_setval(frame_id, 0),
-    nb_setval(frame, _{}),
-    nb_setval(breakpoints, _{}),
-    nb_setval(bindings, _{}).
+init :- nb_setval(frame_id, 0), nb_setval(frame, _{}), nb_setval(breakpoints, _{}), nb_setval(bindings, _{}).
 
-gen_frame_id(Id) :-
-    nb_getval(frame_id, Id),
-    NewId is Id+1,
-    nb_setval(frame_id, NewId).
+gen_frame_id(Id) :- nb_getval(frame_id, Id), NewId is Id+1, nb_setval(frame_id, NewId).
 
-load_source_file(File) :-
-    file_lines_computed(File), !.
-load_source_file(File) :-
-    (   source_file(File)
-    ;   load_files(File, [module(user)])
-    ),
-    setup_file_lines_chars(File).
+load_source_file(File) :- file_lines_computed(File), !.
+load_source_file(File) :- ( source_file(File) ; load_files(File, [module(user)]) ), setup_file_lines_chars(File).
 
 set_breakpoints(SourceFile1, BPs) :-
     nb_setval(breakpoints, _{}),
     split_string(BPs, ";", "", BPL),
     convert_to_dicts(BPL, BPDs),
     absolute_file_name(SourceFile1, SourceFile),
-    (   source_file(SourceFile)
-    ;   consult(SourceFile)
-    ),
+    ( source_file(SourceFile) ; consult(SourceFile) ),
     clear_breakpoints(SourceFile),
     set_breakpoints(SourceFile, BPDs, Verified), !,
     Response=_{response:_{breakpoints:Verified}},
     dict_json(Response, ResStr),
     format('~n~w~n', ResStr).
 
-convert_to_dicts([JH|JT], [DH|DT]) :-
-    dict_json(DH, JH),
-    convert_to_dicts(JT, DT).
+convert_to_dicts([JH|JT], [DH|DT]) :- dict_json(DH, JH), convert_to_dicts(JT, DT).
 convert_to_dicts([], []).
 
-clear_breakpoints(File) :-
-    breakpoint_property(Id, file(File)),
-    delete_breakpoint(Id),
-    fail.
+clear_breakpoints(File) :- breakpoint_property(Id, file(File)), delete_breakpoint(Id), fail.
 clear_breakpoints(_).
 
-set_breakpoints(File,
-                            [BPDict|T],
-                            
-                            [ _{ line:BPDict.line,
-                                 source:File,
-                                 verified:Verified
-                               }
-                            | VT
-                            ]) :-
+set_breakpoints(File, [BPDict|T], [ _{ line:BPDict.line, source:File, verified:Verified } | VT ]) :-
     dict_keys(BPDict, BpKeys),
-    (   memberchk(column, BpKeys)
-    ->  Col is BPDict.column
-    ;   Col is 0
-    ),
+    ( memberchk(column, BpKeys) -> Col is BPDict.column ; Col is 0),
     catch((   set_breakpoint(File, BPDict.line, Col, Id)
           ->  Verified=true,
               add_to_dict(Id, BpKeys, File, BPDict)
