@@ -66,7 +66,6 @@ export class Utils {
       return;
     }
     let snippetsPath = context.extensionPath + "/snippets/prolog.json";
-    console.log("lecture")
     let snippets = fs.readFileSync(snippetsPath, "utf8").toString();
     Utils.snippets = JSON.parse(snippets);
   }

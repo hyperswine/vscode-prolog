@@ -30,7 +30,7 @@ export class PrologReferenceProvider implements ReferenceProvider {
     const arrayModule = [...docContent.matchAll(regexpModule)]
     const prolog = doc.fileName.split(".")[1]
     const array = [...docContent.matchAll(regexp)];
-    var locations =array.map((elem)=>new Location(Uri.file(doc.fileName),findLineColForByte(docContent,elem.index)));
+    var locations =array.map((elem)=>new Location(Uri.file(doc.fileName),doc.positionAt(elem.index)));
     for(let i = 0 ; i < arrayModule.length;i++){
         var text=fs.readFileSync(workspace.workspaceFolders[0].uri.fsPath+"/"+arrayModule[i][1]+"."+prolog, 'utf8');
         const array = [...text.matchAll(regexp)];

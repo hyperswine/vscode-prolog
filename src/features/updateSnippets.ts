@@ -20,7 +20,7 @@ import { Utils} from "../utils/utils";
 
 
 
-export   class SnippetUpdater {
+export class SnippetUpdater {
   public updateSnippet() {
 
       // Create as needed 
@@ -63,7 +63,7 @@ export   class SnippetUpdater {
   public _getPredicat(doc: TextDocument)  { 
 
       let docContent = doc.getText(); 
-      const regexp = /^\s*([a-z][a-zA-Z0-9_]*)\(([a-zA-Z0-9_\-, ]*)\)(?=.*:-.*)/gm;
+      const regexp = /^\s*([a-z][a-zA-Z0-9_]*)\(([a-zA-Z0-9_\-, ]*)\)(?=.*(:-|=>|-->).*)/gm;
       const regexpModule = /^\s*:-\s*use_module\(([a-z][a-zA-Z0-9_\/]*)\s*(,|\)\s*\.)/gm;
       const arrayModule = [...docContent.matchAll(regexpModule)]
       const prolog = doc.fileName.split(".")[1]

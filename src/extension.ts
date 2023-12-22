@@ -12,6 +12,7 @@ import {
   DocumentHighlightProvider,
   Location,
   Disposable,
+  TextEdit,
   workspace
 } from "vscode";
 import * as path from "path";
@@ -22,6 +23,7 @@ import PrologHoverProvider from "./features/hoverProvider";
 import PrologDocumentHighlightProvider from "./features/documentHighlightProvider";
 import PrologDocumentFormatter from "./features/formattingEditProvider";
 import { SnippetUpdater ,SnippetUpdaterController, PrologCompletionProvider} from "./features/updateSnippets";
+import {PrologFormatter} from "./features/prologFormatter";
 import { PrologDefinitionProvider } from "./features/definitionProvider";
 import { PrologReferenceProvider } from "./features/referenceProvider";
 import PrologLinter from "./features/prologLinter";
@@ -192,7 +194,12 @@ export async function activate(context: ExtensionContext) {
 
   context.subscriptions.push(
     languages.registerCompletionItemProvider(PROLOG_MODE,new PrologCompletionProvider())
-  )
+  );
+
+  context.subscriptions.push(
+    languages.registerDocumentFormattingEditProvider(PROLOG_MODE, new PrologFormatter())
+  );
+
 }
 
 
