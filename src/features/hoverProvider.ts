@@ -1,4 +1,5 @@
 "use strict"
+
 import {
   HoverProvider,
   MarkdownString,
@@ -7,10 +8,7 @@ import {
   CancellationToken,
   Hover,
   Range,
-  workspace,
-  languages
 } from "vscode"
-import * as cp from "child_process"
 import { Utils } from "../utils/utils"
 
 export default class PrologHoverProvider implements HoverProvider {
@@ -43,7 +41,6 @@ export default class PrologHoverProvider implements HoverProvider {
       }
     }
 
-    //return contents === [] ? null : new Hover(contents, wordRange);
-    return new Hover(contents, wordRange)
+    new Hover(contents, wordRange)
   }
 }
