@@ -33,15 +33,14 @@ export interface IPredicate {
 }
 
 export class Utils {
-  public static snippets: ISnippet = null;
-  public static newsnippets = [];
-  private static predModules: IPredModule = null;
-  public static DIALECT: string | null = null;
-  public static RUNTIMEPATH: string | null = null;
-  public static CONTEXT: ExtensionContext | null = null;
-  public static LINTERTRIGGER: string | null = null;
+  public static snippets: ISnippet = null
+  public static newsnippets = []
+  private static predModules: IPredModule = null
+  public static RUNTIMEPATH: string | null = null
+  public static CONTEXT: ExtensionContext | null = null
+  public static LINTERTRIGGER: string | null = null
   public static FORMATENABLED: boolean
-  public static EXPATH: string | null = null;
+  public static EXPATH: string | null = null
 
   constructor() { }
   public static getPredDescriptions(pred: string): string {
@@ -146,59 +145,35 @@ export class Utils {
       // find the module if a predicate is picked in :-module or :-use_module
     } else if (re1.test(text)) {
       arity = parseInt(text.match(re1)[1])
-      params =
-        arity === 0 ? "" : "(" + new Array(arity).fill("_").join(",") + ")"
+      params = arity === 0 ? "" : "(" + new Array(arity).fill("_").join(",") + ")"
       wholePred = predName + params
-      switch (Utils.DIALECT) {
-        case "swi":
-          let reg = new RegExp(
-            "module\\s*\\(\\s*([^,\\(]+)\\s*,\\s*\\[[^\\]]*?" +
-            predName +
-            "/" +
-            arity +
-            "\\b"
-          )
-          let mtch = docTxt.replace(/\n/g, "").match(reg)
-          if (mtch) {
-            let mFile = jsesc(mtch[1])
-            let mod = Utils.execPrologSync(
-              ["-q"],
-              `find_module :-
+
+      let reg = new RegExp(
+        "module\\s*\\(\\s*([^,\\(]+)\\s*,\\s*\\[[^\\]]*?" +
+        predName +
+        "/" +
+        arity +
+        "\\b"
+      )
+      let mtch = docTxt.replace(/\n/g, "").match(reg)
+      if (mtch) {
+        let mFile = jsesc(mtch[1])
+        let mod = Utils.execPrologSync(
+          ["-q"],
+          `find_module :-
                 absolute_file_name(${mFile}, File, [file_type(prolog)]),
                 load_files(File),
                 source_file_property(File, module(Mod)),
                 writeln(module:Mod).`,
-              "find_module",
-              "true",
-              /module:(\w+)/
-            )
-            if (mod) {
-              module = mod[1]
-            }
-          }
-          break
-        case "ecl":
-          let modDefMatch = docTxt.match(/\n?\s*:-\s*module\((\w+)\)/)
-          let expRe1 = new RegExp(
-            "\\n\\s*:-\\s*export[^\\.]+\\b" + predName + "\\s*/\\s*" + arity
-          )
-          let expRe2 = new RegExp(
-            "\\n\\s*:-\\s*import.*\\b" +
-            predName +
-            "\\s*/\\s*" +
-            arity +
-            "\\b.*from\\s*(\\w+)"
-          )
-          let impModMtch = docTxt.match(expRe2)
-          if (modDefMatch && expRe1.test(docTxt)) {
-            module = modDefMatch[1]
-          } else if (impModMtch) {
-            module = impModMtch[1]
-          }
-          break
-        default:
-          break
+          "find_module",
+          "true",
+          /module:(\w+)/
+        )
+        if (mod) {
+          module = mod[1]
+        }
       }
+
     } else {
       arity = 0
       params = ""
@@ -227,26 +202,14 @@ export class Utils {
     let args = [],
       plCode: string
 
-    switch (Utils.DIALECT) {
-      case "swi":
-        args = ["-f", "none", "-q"]
-        plCode = `
-          outputArity :-
-            read(Term),
-            functor(Term, _, Arity),
-            format("arity=~d~n", [Arity]).
-        `
-        break
-      case "ecl":
-        plCode = `
-          outputArity :-
-            read(Term),
-            functor(Term, _, Arity),
-            printf("arity=%d%n", [Arity]).
-        `
-      default:
-        break
-    }
+    args = ["-f", "none", "-q"]
+    plCode = `
+      outputArity :-
+        read(Term),
+        functor(Term, _, Arity),
+        format("arity=~d~n", [Arity]).
+    `
+
     let result = Utils.execPrologSync(
       args,
       plCode,
@@ -254,7 +217,8 @@ export class Utils {
       pred,
       /arity=(\d+)/
     )
-    return result ? parseInt(result[1]) : -1
+
+    result ? parseInt(result[1]) : -1
   }
 
   public static execPrologSync(
@@ -268,39 +232,19 @@ export class Utils {
     let input: string,
       prologProcess: cp.SpawnSyncReturns<string | Buffer>,
       runOptions: cp.SpawnSyncOptions
-    switch (Utils.DIALECT) {
-      case "swi":
-        input = `
-          open_string("${plCode}", Stream), 
-          load_files(runprolog, [stream(Stream)]).
-          ${call}. 
-          ${inputTerm}.
-          halt.
-        `
-        runOptions = {
-          cwd: workspace.workspaceFolders[0].uri.fsPath,
-          encoding: "utf8",
-          input: input
-        }
-        prologProcess = cp.spawnSync(Utils.RUNTIMEPATH, args, runOptions)
-        break
-      case "ecl":
-        input = `${inputTerm}.`
-        args = args.concat([
-          "-e",
-          `open(string(\"${plCode
-          }\n\"), read, S),compile(stream(S)),close(S),call(${call}).`
-        ])
-        runOptions = {
-          cwd: workspace.workspaceFolders[0].uri.fsPath,
-          encoding: "utf8",
-          input: input
-        }
-        prologProcess = cp.spawnSync(Utils.RUNTIMEPATH, args, runOptions)
-        break
-      default:
-        break
+    input = `
+      open_string("${plCode}", Stream),
+      load_files(runprolog, [stream(Stream)]).
+      ${call}.
+      ${inputTerm}.
+      halt.
+    `
+    runOptions = {
+      cwd: workspace.workspaceFolders[0].uri.fsPath,
+      encoding: "utf8",
+      input: input
     }
+    prologProcess = cp.spawnSync(Utils.RUNTIMEPATH, args, runOptions)
 
     if (prologProcess.status === 0) {
       let output = prologProcess.stdout.toString()
@@ -325,35 +269,5 @@ export class Utils {
         return console.error(err)
       })
     })
-  }
-
-  public static isValidEclTerm(docText: string, str: string): boolean {
-    if (Utils.DIALECT !== "ecl") {
-      return false
-    }
-    let lm = path.resolve(
-      `${Utils.CONTEXT.extensionPath}/out/src/features/load_modules`
-    )
-    let goals = `
-        use_module('${lm}'),
-        load_modules_from_text("${docText}"),
-        catch((term_string(_, "${str}"), writeln("result:validTerm")),
-          _, writeln("result:invalidTerm")).
-          `
-    let runOptions: cp.SpawnSyncOptions
-    runOptions = {
-      cwd: workspace.rootPath,
-      encoding: "utf8",
-      input: goals
-    }
-    let prologProcess = cp.spawnSync(Utils.RUNTIMEPATH, [], runOptions)
-    if (prologProcess.status === 0) {
-      let output = prologProcess.stdout.toString()
-      let err = prologProcess.stderr.toString()
-      let match = output.match(/result:validTerm/)
-      return match ? true : false
-    } else {
-      return false
-    }
   }
 }

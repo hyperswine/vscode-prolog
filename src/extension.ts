@@ -38,7 +38,6 @@ async function initForDialect(context: ExtensionContext) {
   const exec = section.get<string>("executablePath", "swipl")
   Utils.LINTERTRIGGER = section.get<string>("linter.run")
   Utils.FORMATENABLED = section.get<boolean>("format.enabled")
-  Utils.DIALECT = dialect
   Utils.RUNTIMEPATH = jsesc(exec)
   const exPath = jsesc(context.extensionPath)
   Utils.EXPATH = exPath

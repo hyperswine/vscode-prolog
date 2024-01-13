@@ -1,5 +1,6 @@
-import * as os from "os";
-("use strict")
+"use strict"
+
+import * as os from "os"
 import { spawn } from "process-promises"
 import {
   CancellationToken,
@@ -17,7 +18,6 @@ import {
   Position,
 } from "vscode"
 import jsesc from "js-string-escape"
-import { Utils } from "../utils/utils"
 import * as path from "path"
 
 interface IComment {
@@ -228,28 +228,14 @@ export default class PrologDocumentFormatter
     let rangeTxt = jsesc(doc.getText(range))
     let goals: string
 
-    switch (Utils.DIALECT) {
-      case "swi":
-        this._args = ["--nodebug", "-q"]
-        let pfile = jsesc(path.resolve(`${__dirname}/formatter_swi`))
-        goals = `
+
+    this._args = ["--nodebug", "-q"]
+    let pfile = jsesc(path.resolve(`${__dirname}/formatter_swi`))
+    goals = `
           use_module('${pfile}').
           formatter:format_prolog_source(${this._tabSize}, ${this._tabDistance
-          }, "${rangeTxt}", "${docText}").
+      }, "${rangeTxt}", "${docText}").
         `
-
-        break
-      case "ecl":
-        let efile = jsesc(path.resolve(`${__dirname}/formatter`))
-        this._args = ["-f", efile]
-        rangeTxt += " end_of_file."
-        goals = `
-          format_prolog_source("${rangeTxt}", "${docText}").
-        `
-        break
-      default:
-        break
-    }
 
     let termStr = ""
     let prologProc = null
@@ -297,15 +283,9 @@ export default class PrologDocumentFormatter
     }
   }
 
-  private resolveTerms(
-    doc: TextDocument,
-    text: string,
-    range: Range,
-    last: boolean = false
-  ) {
-    if (!/TERMSEGMENTBEGIN:::/.test(text)) {
-      return
-    }
+  private resolveTerms(doc: TextDocument, text: string, range: Range, last: boolean = false) {
+    if (!/TERMSEGMENTBEGIN:::/.test(text)) return
+
     let varsRe = /VARIABLESBEGIN:::\[([\s\S]*?)\]:::VARIABLESEND/
     let termRe = /TERMBEGIN:::\n([\s\S]+?):::TERMEND/
     let termPosRe = /TERMPOSBEGIN:::(\d+):::TERMPOSEND/
@@ -318,91 +298,11 @@ export default class PrologDocumentFormatter
       comms = text.match(commsRe)
     let termCharA = parseInt(termPos[1])
     let termCharZ = termEnd ? parseInt(termEnd[1]) : undefined
-    let commsArr: IComment[] =
-      comms && comms[1] ? JSON.parse(comms[1]).comments : []
+    let commsArr: IComment[] = comms && comms[1] ? JSON.parse(comms[1]).comments : []
 
-    switch (Utils.DIALECT) {
-      case "swi":
-        this.resolveTermsSwi(doc, range, last, term, vars, termCharA, commsArr)
-        break
-      case "ecl":
-        // comments inside of clause
-        let commReg = /\/\*[\s\S]*?\*\/|%.*?(?=\n)/g
-        let lastTermEnd = termCharA
-        if (commsArr && commsArr[0]) {
-          lastTermEnd = commsArr[0].location
-        }
-        let origTxt = doc
-          .getText()
-          .slice(
-            doc.offsetAt(range.start) + termCharA,
-            doc.offsetAt(range.start) + termCharZ
-          )
-        let match: RegExpExecArray
-        while ((match = commReg.exec(origTxt)) !== null) {
-          let m = match[0]
-          let comm: IComment = null
-          if (m.startsWith("%")) {
-            let commPos = doc.positionAt(
-              doc.offsetAt(range.start) + termCharA + match.index
-            )
-            let lineStr = doc.lineAt(commPos.line).text
-            comm = this.handleLineComment(
-              doc,
-              lineStr,
-              m,
-              match.index,
-              commPos.character,
-              commsArr
-            )
-          } else {
-            comm = {
-              location: match.index,
-              comment: m
-            }
-          }
-          if (comm !== null) {
-            commsArr.push(comm)
-          }
-        }
-        this.resolveTermsEcl(
-          doc,
-          range,
-          last,
-          term,
-          vars,
-          termCharA,
-          termCharZ,
-          commsArr
-        )
-        break
-      default:
-        break
-    }
+    this.resolveTermsSwi(doc, range, last, term, vars, termCharA, commsArr)
   }
 
-  private handleLineComment(
-    doc: TextDocument,
-    lineStr: string,
-    originalMatched: string,
-    index: number,
-    charPos: number,
-    commsArr: IComment[]
-  ): IComment {
-    if (lineStr.replace(/^\s*/, "") === originalMatched) {
-      return { location: index, comment: originalMatched }
-    }
-    let i = charPos
-    let docText = jsesc(doc.getText(), { quotes: "double" })
-    while (i > -1) {
-      let termStr = lineStr.slice(0, i).replace(/(,|;|\.)\s*$/, "")
-      if (Utils.isValidEclTerm(docText, termStr)) {
-        return { location: index + i - charPos, comment: lineStr.slice(i) }
-      }
-      i = lineStr.indexOf("%", i + 1)
-    }
-    return null
-  }
   private resolveTermsSwi(
     doc: TextDocument,
     range: Range,
@@ -468,32 +368,7 @@ export default class PrologDocumentFormatter
     }
   }
 
-  private resolveTermsEcl(
-    doc: TextDocument,
-    range: Range,
-    last: boolean,
-    term: RegExpMatchArray,
-    vars: RegExpMatchArray,
-    termCharA: number,
-    termCharZ: number,
-    commsArr: IComment[]
-  ) {
-    let formattedTerm = this.restoreVariableNames(term[1], vars[1].split(","))
-      .replace(/\b_\d+\b/g, "_")
-      .replace(/\s*$/, "")
-    termCharA += doc.offsetAt(range.start)
-    termCharZ += doc.offsetAt(range.start)
-    this._currentTermInfo = {
-      startLine: doc.positionAt(termCharA).line,
-      startChar: doc.positionAt(termCharA).character,
-      endLine: doc.positionAt(termCharZ).line,
-      endChar: doc.positionAt(termCharZ).character,
-      isValid: true,
-      termStr: formattedTerm,
-      comments: commsArr
-    }
-    this.generateTextEdit(doc)
-  }
+
   private generateTextEdit(doc: TextDocument) {
     let termRange = new Range(
       this._currentTermInfo.startLine,

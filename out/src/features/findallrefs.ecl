@@ -3,7 +3,7 @@
 :- use_module(library(regex)).
 :- use_module(load_file_module).
 
-:- local variable(locations), 
+:- local variable(locations),
 		 variable(pred_imported),
 		 variable(exported_here),
 		 variable(this_module).
@@ -45,7 +45,7 @@ dig_predicate(_ : Pred / _, Term, _) :-
 	concat_string(["\\b", Pred, "\\b"], Pattern),
 	\+ match(Pattern, String),
 	!.
-	
+
 dig_predicate(_ : _ / Arity, Term, AnnTerm) :-
 	\+ is_list(AnnTerm),
 	Arity > 0,
@@ -56,7 +56,7 @@ dig_predicate(_ : Pred / 0, Term, AnnTerm) :-
 	Pred \= Term,
 	\+ compound(Term),
 	!.
-	
+
 dig_predicate(_, :- use_module(_), _) :-
 	!.
 dig_predicate(_, :- module(_), _) :-
@@ -99,7 +99,7 @@ dig_predicate(Module : Pred / Arity, :- tool(_, Pred / Arity), annotated_term{te
 	update_locs(From).
 dig_predicate(_, :- tool(_, _), _) :-
 	!.
-	
+
 
 dig_predicate(Module : PredName / Arity, Module : Pred, annotated_term{term : annotated_term{term : Module} : annotated_term{(from) : From}}) :-
 	functor(Pred, PredName, Arity),
@@ -132,11 +132,11 @@ dig_predicate(Module : Pred / Arity, [TH|TT], [AH|AT]) :-
 	dig_predicate(Module : Pred / Arity, TT, AT).
 dig_predicate(_, _, []) :-
 	!.
-    
+
 update_locs(NewData) :-
 	getval(locations, Value),
 	setval(locations, [NewData|Value]).
-	
+
 locate_pred(PI, Pred / Arity, From) :-
 	unified(PI, Pred / Arity, From),
 	!.
