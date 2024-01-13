@@ -88,6 +88,7 @@ async function fileToSnippet(file: string) {
   }
 }
 
+// issue: hardcoded path for ECLIPSE
 (async () => {
   let docRoot = "/opt/eclipseclp/doc/bips/"
   await libsToSnippets(docRoot + "kernel", true)

@@ -1,18 +1,11 @@
 "use strict"
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+
 import {
   commands,
   DocumentFilter,
   ExtensionContext,
-  Terminal,
-  TextDocument,
   window,
   languages,
-  DocumentHighlightProvider,
-  Location,
-  Disposable,
-  TextEdit,
   workspace
 } from "vscode"
 import * as path from "path"
@@ -43,9 +36,7 @@ async function initForDialect(context: ExtensionContext) {
   Utils.EXPATH = exPath
   const diaFile = path.resolve(`${exPath}/.vscode`) + "/dialect.json"
   const lastDialect = JSON.parse(fs.readFileSync(diaFile).toString()).dialect
-  if (lastDialect === dialect) {
-    return
-  }
+  if (lastDialect === dialect) return
 
   const symLinks = [
     {
@@ -68,17 +59,17 @@ async function initForDialect(context: ExtensionContext) {
           path.resolve(`${link.path}/${link.targetFile}`)
         )
       } catch (err) {
-        window.showErrorMessage("VSC-Prolog failed in initialization. Try to run vscode in administrator role.")
+        window.showErrorMessage("SWI Prolog failed in initialization... Are you sure you have the right privileges?")
         throw (err)
       }
     })
   )
   fs.writeFileSync(diaFile, JSON.stringify({ dialect: dialect }))
 }
+
 // this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export async function activate(context: ExtensionContext) {
-  console.log('Congratulations, your extension "vsc-prolog" is now active!')
+  console.log('SWI Prolog is now active!')
   await initForDialect(context)
 
   const PROLOG_MODE: DocumentFilter = { language: "prolog", scheme: "file" }
@@ -183,13 +174,10 @@ export async function activate(context: ExtensionContext) {
     )
   )
   context.subscriptions.push(PrologTerminal.init())
-  // context.subscriptions.push(prologDebugger);
-
   // Add to a list of disposables which are disposed when this extension is deactivated.
   let snippetUpdater = new SnippetUpdater()
   context.subscriptions.push(new SnippetUpdaterController(snippetUpdater))
   context.subscriptions.push(snippetUpdater)
-
 
   context.subscriptions.push(
     languages.registerCompletionItemProvider(PROLOG_MODE, new PrologCompletionProvider())
@@ -198,18 +186,7 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(
     languages.registerDocumentFormattingEditProvider(PROLOG_MODE, new PrologFormatter())
   )
-
 }
-
-
-
-
-
-
-
-
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
-
-

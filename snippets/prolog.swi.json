@@ -5636,20 +5636,6 @@
     "description": "\tfeature(+Feature) is semidet.\n\n\tProvide the condition for :- if(feature(...)).",
     "prefix": "feature"
   },
-  "dialect/eclipse/test_util_iso:test/1": {
-    "body": [
-      "test(${1:TestFile})$2\n$0"
-    ],
-    "description": "\ttest(+TestFile) is det.\n\n\tRuns all the test patterns in TestFile.",
-    "prefix": "test"
-  },
-  "dialect/eclipse/test_util_iso:test/2": {
-    "body": [
-      "test(${1:TestFile}, ${2:ResultFile})$3\n$0"
-    ],
-    "description": "\ttest(+TestFile, +ResultFile) is det.\n\n\tRuns all the test patterns  in   TestFile,  and  logs results in\n\tResultFile.",
-    "prefix": "test"
-  },
   "dialect/hprolog/format:format/2": {
     "body": [
       "format(${1:'Param1'}, ${2:'Param2'})$3\n$0"

@@ -1,10 +1,10 @@
 {
-  "name": "new-vsc-prolog",
-  "displayName": "New-VSC-Prolog",
-  "description": "Support for Prolog language",
+  "name": "swi-prolog",
+  "displayName": "SWI Prolog",
+  "description": "SWI Prolog Language Support",
   "version": "1.0.17",
-  "publisher": "AmauryRabouan",
-  "icon": "images/vsplogo.png",
+  "publisher": "Jasen Qin",
+  "icon": "images/logo.png",
   "license": "MIT",
   "engines": {
     "vscode": "^1.63.0"
@@ -24,8 +24,7 @@
     "format"
   ],
   "author": {
-    "name": "Arthur Wang",
-    "email": "rthrwang@gmail.com"
+    "name": "Jasen Qin"
   },
   "contributors": [
     {
@@ -37,19 +36,20 @@
     },
     {
       "name": "Guillaume Nollet"
+    },
+    {
+      "name": "Arthur Wang",
+      "email": "rthrwang@gmail.com"
     }
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/AmauryRabouan/vsc-prolog-1.git"
+    "url": "https://github.com/hyperswine/vscode-prolog.git"
   },
   "bugs": {
-    "url": "https://github.com/AmauryRabouan/vsc-prolog-1/issues"
+    "url": "https://github.com/hyperswine/vscode-prolog/issues"
   },
   "main": "./out/main.js",
-  "activationEvents": [
-    "onLanguage:prolog"
-  ],
   "contributes": {
     "languages": [
       {
@@ -166,11 +166,6 @@
       {
         "type": "prolog",
         "label": "Prolog",
-        "enableBreakpointsFor": {
-          "languageIds": [
-            "prolog"
-          ]
-        },
         "program": "./out/src/features/prologDebugSession.js",
         "runtime": "node",
         "configurationAttributes": {
@@ -349,7 +344,6 @@
     "esbuild": "npm run -S esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run -S esbuild-base -- --sourcemap --watch",
     "compile": "tsc -watch -p ./",
-    "test": "node ./node_modules/vscode/bin/test",
     "package": "vsce package",
     "syntax4swi": "yaml2json --pretty --save ./syntaxes/prolog.swi.tmLanguage.yaml",
     "pkgvars": "node ./node_modules/vscode/bin/install"
