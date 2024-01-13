@@ -58,7 +58,7 @@ spy_predicates(Preds) :-
     format('~n~w~n', ResStr).
 
 spy_predicates([Pred|T],
-                           
+
                            [ _{message:PredA, verified:Verified}
                            | VT
                            ]) :-
@@ -87,7 +87,7 @@ user:prolog_trace_interception(_, Frame, _, Action) :-
     (   locate_source(Frame)
     ;   output_clause_location(Goal, Frame)
     ),
-    check_breakpoint(Action). 
+    check_breakpoint(Action).
 check_breakpoint(continue) :-
     nb_getval(frame, FrDict),
     nb_getval(breakpoints, BpDict),
@@ -210,13 +210,14 @@ trace_parent(Level, Start, Child, GParent, ClauseRef, PC) :-
     prolog_frame_attribute(Start, parent, Parent),
     Next is Level-1,
     trace_parent(Next, Parent, Child, GParent, ClauseRef, PC).
-    
+
 
 locate_source(Frame) :-
     prolog_frame_attribute(Frame, level, Level),
     trace_parent(Level, Frame, Child, Parent, PClauseRef, PC),
     frame_attrs(Frame, FAttrs),
     prolog_frame_attribute(Parent, goal, ParentGoal),
+
     \+ ParentGoal=startup(_),
     output_bindings(Parent, PClauseRef),
     (   Child=:=Frame
@@ -258,11 +259,11 @@ sub_chars(Chars, From, To, [H|T]) :-
 
 
 strip_subterm(File, ClauseRef, _) :-
-    clause_handled(File, ClauseRef). 
+    clause_handled(File, ClauseRef).
 strip_subterm(File, ClauseRef, SubTerms) :-
     assert_subterm(File, ClauseRef, SubTerms),
     assert(clause_handled(File, ClauseRef)).
-     
+
 assert_subterm(File,
                            ClauseRef,
                            parentheses_term_position(_, _, Subs)) :-
@@ -309,7 +310,7 @@ assert_subterm(File,
     assert_subterm(File, ClauseRef, B), !.
 assert_subterm(File, ClauseRef, [H|T]) :-
     assert_subterm(File, ClauseRef, H),
-    assert_subterm(File, ClauseRef, T), !.    
+    assert_subterm(File, ClauseRef, T), !.
 assert_subterm(File,
                            ClauseRef,
                            term_position(From,
@@ -359,19 +360,6 @@ goal_var_name(Var,
     Var==AH, !.
 goal_var_name(Var, [_|VT], [_|AT], NVar) :-
     goal_var_name(Var, VT, AT, NVar).
-     
-
-% test(GoalStr) :-
-%     writeln(given:GoalStr),
-%     retractall(clause_handled(_, _)),
-%     retractall(subterm_pos(_, _, _, _)),
-%     writeln(oka),
-%     F='/home/laowang/workspace/vsc-prolog/test/test.pl',
-%     consult(F),
-%     clause(rewrite_module_declaration(_, _), _, Ref),
-%     locate_from_term_position(_, Ref, GoalStr, CharA),
-%     from_char_to_line_char(F, CharA, Line, Ch),
-%     writeln(location:Line:Ch).
 
 print_properties(Frame, [H|T]) :-
     catch(( prolog_frame_attribute(Frame, H, Value),

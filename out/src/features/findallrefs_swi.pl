@@ -20,7 +20,7 @@ output_definition_locations1(_) :- writeln('{"reference":"definition location fo
 output_export_location(_, _) :- nb_getval(export_located, true), !.
 output_export_location(Target, File) :- setup_call_cleanup(open(File, read, RStream), ( repeat, read_term(RStream, Term, [subterm_positions(STPos)]), (Term = end_of_file -> ! ; Term=(:-module(_, Exports)), !, nb_setval(export_located, true), Target = _: PI, functor(PI, PN, Arity), nth1(Index, Exports, PN/Arity), STPos=term_position(_, _, _, _, [term_position(_, _, _, _, [_, list_position(_, _, Elems, _)])]), nth1(Index, lems, term_position(_, _, _, _, [From-_, _])), prolog_codewalk:filepos_line(File, From, Line, CharA), Line1 is Line-1, output_file_line_char(File, Line1, CharA)) ), close(RStream)), !.
 output_export_location(_, _).
-    
+
 resolve(M:Name/Arity, Target) :- atom(Name), integer(Arity), !, functor(Head, Name, Arity), resolve(M:Head, Target).
 resolve(M:Head, Target) :- callable(Head), !, ( predicate_property(M:Head, imported_from(M2)) ->  Target=M2:Head ; Target=M:Head ).
 resolve(To, _) :- type_error(callable, To).

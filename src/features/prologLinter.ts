@@ -277,42 +277,19 @@ export default class PrologLinter implements CodeActionProvider {
     let docTxtEsced = jsesc(docTxt, { quotes: "double" })
     let fname = jsesc(path.resolve(textDocument.fileName))
 
-    switch (Utils.DIALECT) {
-      case "swi":
-        if (this.trigger === RunTrigger.onSave) {
-          args = ["-g", "halt", fname]
-        }
-        if (this.trigger === RunTrigger.onType) {
-          args = ["-q"]
-          goals = `
+
+    if (this.trigger === RunTrigger.onSave) {
+      args = ["-g", "halt", fname]
+    }
+    if (this.trigger === RunTrigger.onType) {
+      args = ["-q"]
+      goals = `
             open_string("${docTxtEsced}", S),
             load_files('${fname}', [stream(S),if(true)]).
             list_undefined.
           `
-        }
-        break
-      case "ecl":
-        let dir = jsesc(path.resolve(`${this.context.extensionPath}/out/src/features`))
-        if (this.trigger === RunTrigger.onSave) {
-          const fdir = path.dirname(fname)
-          const file = path.basename(fname)
-          goals = `(cd("${dir}"),
-          use_module('load_modules'),
-          cd("${fdir}"),
-          load_modules_from_file('${file}'),
-          compile('${file}', [debug:off]),halt)`
-          args = ["-e", goals]
-        }
-        if (this.trigger === RunTrigger.onType) {
-          goals = `(cd("${dir}"),
-          use_module(load_modules),
-          load_modules_from_text("${docTxtEsced}"),
-          open(string("${docTxtEsced}"), read, S),
-          compile(stream(S), [debug:off]),
-          close(S),halt)`
-        }
-      default: break
     }
+
 
     spawn(this.executable, args, options)
       .on("process", process => {
@@ -324,95 +301,30 @@ export default class PrologLinter implements CodeActionProvider {
           if (this.enableOutput) this.outputChannel.clear()
         }
       })
-      .on("stdout", out => {
-        if (Utils.DIALECT === "ecl" && !/checking completed/.test(out)) {
-          if (/^File\s*/.test(out)) {
-            if (lineErr) {
-              this.parseIssue(lineErr + "\n")
-              lineErr = ''
-            }
 
-            let match = out.match(/File\s*([^,]+),.*line\s*(\d+):\s*(.*)/)
-            let fullName: string
-
-            if (match[1] === "string") fullName = textDocument.fileName
-            else fullName = find.fileSync(new RegExp(match[1]), workspace.rootPath)[0]
-
-            lineErr = "Warning:" + fullName + ":" + match[2] + ":" + match[3]
-          } else if (/^\|/.test(out)) {
-            lineErr += out
-          } else if (/WARNING/.test(out) && this.enableOutput) {
-            this.outputMsg(out)
-          }
-        }
-      })
       .on("stderr", (errStr: string) => {
-        switch (Utils.DIALECT) {
-          case "swi":
-            if (/which is referenced by/.test(errStr)) {
-              let regex = /Warning:\s*(.+),/
-              let match = errStr.match(regex)
-              lineErr = " Predicate " + match[1] + " not defined"
-            } else if (/clause of /.test(errStr)) {
-              let regex = /^(Warning:\s*(.+?):)(\d+):(\d+)?/
-              let match = errStr.match(regex)
-              let line = parseInt(match[3])
-              let char = match[4] ? parseInt(match[4]) : 0
-              let rangeStr = line + ":" + char + ":200: "
-              let lineMsg = match[1] + rangeStr + lineErr
-              this.parseIssue(lineMsg + "\n")
-            } else if (/:\s*$/.test(errStr)) {
-              lineErr = errStr
-            } else {
-              if (errStr.startsWith("ERROR") || errStr.startsWith("Warning")) {
-                lineErr = errStr
-              } else {
-                lineErr = lineErr.concat(errStr)
-              }
-              this.parseIssue(lineErr + "\n")
-              lineErr = ''
-            }
-            break
-          case "ecl":
-            if (this.enableOutput) {
-              this.outputChannel.clear()
-            }
-            if (/^[fF]ile|^string stream|^Stream/.test(errStr)) {
-              if (lineErr !== '') {
-                this.parseIssue(lineErr + "\n")
-                if (this.enableOutput) {
-                  this.outputMsg(lineErr)
-                }
-                lineErr = ''
-              }
-              let fullName: string, line: string, msg: string
-              let match = errStr.match(
-                /[fF]ile\s*([^,]+),\s*line\s*(\d+):\s*(.*)/
-              )
-
-              if (match) {
-                fullName = find.fileSync(
-                  new RegExp(match[1]),
-                  workspace.rootPath
-                )[0]
-                line = match[2]
-                msg = match[3]
-              } else {
-                fullName = textDocument.fileName
-                match = errStr.match(/line\s*(\d+):\s*(.*)/)
-                if (!match) {
-                  match = errStr.match(/:(\d+):\s*(.*)/)
-                }
-                line = match[1]
-                msg = match[2]
-              }
-              const msgType = /error:|[sS]tream/.test(lineErr) ? "ERROR:" : "WARNING:"
-              lineErr = msgType + fullName + ":" + line + ":" + msg
-            } else if (!/^\s*$/.test(errStr)) {
-              lineErr += "\n" + errStr
-            }
-          default:
-            break
+        if (/which is referenced by/.test(errStr)) {
+          let regex = /Warning:\s*(.+),/
+          let match = errStr.match(regex)
+          lineErr = " Predicate " + match[1] + " not defined"
+        } else if (/clause of /.test(errStr)) {
+          let regex = /^(Warning:\s*(.+?):)(\d+):(\d+)?/
+          let match = errStr.match(regex)
+          let line = parseInt(match[3])
+          let char = match[4] ? parseInt(match[4]) : 0
+          let rangeStr = line + ":" + char + ":200: "
+          let lineMsg = match[1] + rangeStr + lineErr
+          this.parseIssue(lineMsg + "\n")
+        } else if (/:\s*$/.test(errStr)) {
+          lineErr = errStr
+        } else {
+          if (errStr.startsWith("ERROR") || errStr.startsWith("Warning")) {
+            lineErr = errStr
+          } else {
+            lineErr = lineErr.concat(errStr)
+          }
+          this.parseIssue(lineErr + "\n")
+          lineErr = ''
         }
       })
       .then(result => {
@@ -586,11 +498,6 @@ export default class PrologLinter implements CodeActionProvider {
   }
 
   public exportPredicateUnderCursor() {
-    if (Utils.DIALECT === "ecl") {
-      this.outputMsg("export helper only works for SWI-Prolog now.")
-      return
-    }
-
     let editor = window.activeTextEditor
     let doc = editor.document
     let docTxt = jsesc(doc.getText(), { quotes: "double" })

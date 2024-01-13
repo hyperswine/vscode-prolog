@@ -143,25 +143,15 @@ export class PrologRefactor {
   ) {
     let input: string,
       args: string[] = []
-    switch (Utils.DIALECT) {
-      case "swi":
-        let pfile = jsesc(path.resolve(`${__dirname}/findallrefs_swi`))
-        input = `
-          use_module('${pfile}').
-          load_files('${file}').
-          findrefs:findrefs(${pi}, ${includingDefLoc}).
-          halt.
-        `
-        args = ["-q"]
-        break
-      case "ecl":
-        let efile = jsesc(path.resolve(`${__dirname}/findallrefs`))
-        args = ["-f", efile]
-        input = `digout_predicate('${file}', ${pi}). `
-        break
-      default:
-        break
-    }
+
+    let pfile = jsesc(path.resolve(`${__dirname}/findallrefs_swi`))
+    input = `
+      use_module('${pfile}').
+      load_files('${file}').
+      findrefs:findrefs(${pi}, ${includingDefLoc}).
+      halt.
+    `
+    args = ["-q"]
 
     try {
       await spawn(this._executable, args, { cwd: workspace.rootPath })
@@ -171,21 +161,8 @@ export class PrologRefactor {
             proc.stdin.end()
           }
         })
-        .on("stdout", output => {
-          // console.log("out:" + output);
-
-          switch (Utils.DIALECT) {
-            case "swi":
-              this.findRefsFromOutputSwi(pi, output)
-              break
-            case "ecl":
-              this.findRefsFromOutputEcl(file, pi, output)
-            default:
-              break
-          }
-        })
+        .on("stdout", output => this.findRefsFromOutputSwi(pi, output))
         .on("stderr", err => {
-          // console.log("err:" + err);
           this._outputChannel.append(err + "\n")
           this._outputChannel.show(true)
         })
@@ -217,11 +194,11 @@ export class PrologRefactor {
       //relocate if ref points to start of the clause
       let lines = fs.readFileSync(ref.file).toString().split("\n")
       let predName = pi.split("/")[0]
-      
+
       if (predName.indexOf(":") > -1) {
         predName = predName.split(":")[1]
       }
-      
+
       if (!new RegExp("^" + predName).test(lines[ref.line].slice(ref.char))) {
         let clauseStart = ref.line
         let start = ref.line
@@ -246,14 +223,14 @@ export class PrologRefactor {
           }
         }
       }
-      
+
       this._locations.push(
         new Location(
           Uri.file(jsesc(path.resolve(ref.file))),
           new Range(ref.line, ref.char, ref.line, ref.char + predName.length)
         )
       )
-      
+
       match = refReg.exec(output)
     }
   }

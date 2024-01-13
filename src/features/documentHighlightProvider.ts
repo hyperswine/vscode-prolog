@@ -4,9 +4,7 @@ export default class PrologDocumentHighlightProvider implements DocumentHighligh
   public provideDocumentHighlights(doc: TextDocument, position: Position, token: CancellationToken): Thenable<DocumentHighlight[]> | DocumentHighlight[] {
     let docHilite: DocumentHighlight[] = []
     let wordRange = doc.getWordRangeAtPosition(position)
-    if (!wordRange) {
-      return
-    }
+    if (!wordRange) return
 
     let symbol = doc.getText(wordRange)
     let symbolLen = symbol.length
