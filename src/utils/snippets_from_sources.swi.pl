@@ -1,4 +1,3 @@
-%% snippets_from_sources.pl
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(pldoc/doc_process)).
@@ -8,11 +7,7 @@
 :- use_module(library(xpath)).
 
 :- (dynamic dir_handled/1, module_spec/2).
-
 :- (volatile dir_handled/1).
-
-% start :-
-%     generate_vscode_swipl_snippets([]).
 
 generate_vscode_swipl_snippets(Options) :-
     option(detailed_description(TrueOrFalse), Options, true),
@@ -32,11 +27,12 @@ generate_vscode_swipl_snippets(Options) :-
     write_to_json_file(SnippetsFile, ResltDict).
 
 %% ----------------------------------------------------
+
 traverse_dirs :-
     file_search_path(library, Dir0),
     forall(absolute_file_name(Dir0,
                               Dir,
-                              
+
                               [ expand(true),
                                 file_type(directory),
                                 file_errors(fail),
