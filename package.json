@@ -340,7 +340,7 @@
     "esbuild-watch": "npm run -S esbuild-base -- --sourcemap --watch",
     "compile": "tsc -watch -p ./",
     "package": "vsce package",
-    "syntax4swi": "yaml2json --pretty --save ./syntaxes/prolog.swi.tmLanguage.yaml",
+    "syntax": "yaml2json --pretty --save ./syntaxes/prolog.tmLanguage.yaml",
     "pkgvars": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {

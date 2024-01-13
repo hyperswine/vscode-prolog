@@ -26,45 +26,48 @@ import jsesc from "jsesc"
 import * as fs from "fs"
 
 async function initForDialect(context: ExtensionContext) {
-  const section = workspace.getConfiguration("prolog")
-  const dialect = section.get<string>("dialect")
-  const exec = section.get<string>("executablePath", "swipl")
-  Utils.LINTERTRIGGER = section.get<string>("linter.run")
-  Utils.FORMATENABLED = section.get<boolean>("format.enabled")
-  Utils.RUNTIMEPATH = jsesc(exec)
-  const exPath = jsesc(context.extensionPath)
-  Utils.EXPATH = exPath
-  const diaFile = path.resolve(`${exPath}/.vscode`) + "/dialect.json"
-  const lastDialect = JSON.parse(fs.readFileSync(diaFile).toString()).dialect
-  if (lastDialect === dialect) return
+  // const section = workspace.getConfiguration("prolog")
+  // const dialect = section.get<string>("dialect")
+  // const exec = section.get<string>("executablePath", "swipl")
+  // Utils.LINTERTRIGGER = section.get<string>("linter.run")
+  // Utils.FORMATENABLED = section.get<boolean>("format.enabled")
+  // Utils.RUNTIMEPATH = jsesc(exec)
+  // const exPath = jsesc(context.extensionPath)
+  // Utils.EXPATH = exPath
+  // const diaFile = path.resolve(`${exPath}/.vscode`) + "/dialect.json"
+  // const lastDialect = JSON.parse(fs.readFileSync(diaFile).toString()).dialect
+  // if (lastDialect === dialect) return
 
-  const symLinks = [
-    {
-      path: path.resolve(`${exPath}/syntaxes`),
-      srcFile: `prolog.${dialect}.tmLanguage.json`,
-      targetFile: "prolog.tmLanguage.json"
-    },
-    {
-      path: path.resolve(`${exPath}/snippets`),
-      srcFile: `prolog.${dialect}.json`,
-      targetFile: "prolog.json"
-    }
-  ]
-  await Promise.all(
-    symLinks.map(async link => {
-      await remove(path.resolve(`${link.path}/${link.targetFile}`))
-      try {
-        return await ensureSymlink(
-          path.resolve(`${link.path}/${link.srcFile}`),
-          path.resolve(`${link.path}/${link.targetFile}`)
-        )
-      } catch (err) {
-        window.showErrorMessage("SWI Prolog failed in initialization... Are you sure you have the right privileges?")
-        throw (err)
-      }
-    })
-  )
-  fs.writeFileSync(diaFile, JSON.stringify({ dialect: dialect }))
+  // symlinks here
+  // const symLinks = [
+  //   {
+  //     path: path.resolve(`${exPath}/syntaxes`),
+  //     srcFile: `prolog.swi.tmLanguage.json`,
+  //     targetFile: "prolog.tmLanguage.json"
+  //   },
+  //   {
+  //     path: path.resolve(`${exPath}/snippets`),
+  //     srcFile: `prolog.json`,
+  //     targetFile: "prolog.json"
+  //   }
+  // ]
+
+  // await Promise.all(
+  //   symLinks.map(async link => {
+  //     await remove(path.resolve(`${link.path}/${link.targetFile}`))
+  //     try {
+  //       return await ensureSymlink(
+  //         path.resolve(`${link.path}/${link.srcFile}`),
+  //         path.resolve(`${link.path}/${link.targetFile}`)
+  //       )
+  //     } catch (err) {
+  //       window.showErrorMessage("SWI Prolog failed in initialization... Are you sure you have the right privileges?")
+  //       throw (err)
+  //     }
+  //   })
+  // )
+
+  // fs.writeFileSync(diaFile, JSON.stringify({ dialect: dialect }))
 }
 
 // this method is called when your extension is activated
