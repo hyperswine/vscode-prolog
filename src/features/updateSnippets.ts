@@ -16,23 +16,19 @@ import { Utils } from "../utils/utils"
 
 export class SnippetUpdater {
   public updateSnippet() {
-    // Create as needed 
-    // Get the current text editor 
+    // Create as needed, get the current text editor
     let editor = window.activeTextEditor
     if (!editor) return
 
     let doc = editor.document
-    // Only update status if an prolog file 
+    // Only update status if prolog file
     if (doc.languageId === "prolog") {
       var predicats = this._getPredicat(doc)
       var already = []
       Object.keys(Utils.snippets).forEach((elem) => {
         if (elem.includes(":")) {
-          if (elem.includes(":-")) {
-            already.push(elem.replace(":- ", ""))
-          } else {
-            already.push(elem.split(":")[1])
-          }
+          if (elem.includes(":-")) already.push(elem.replace(":- ", ""))
+          else already.push(elem.split(":")[1])
         } else {
           already.push(elem)
         }
@@ -52,7 +48,6 @@ export class SnippetUpdater {
   }
 
   public _getPredicat(doc: TextDocument) {
-
     let docContent = doc.getText()
     const regexp = /^\s*([a-z][a-zA-Z0-9_]*)\(([a-zA-Z0-9_\-, ]*)\)(?=.*(:-|=>|-->).*)/gm
     const regexpModule = /^\s*:-\s*use_module\(([a-z][a-zA-Z0-9_\/]*)\s*(,|\)\s*\.)/gm
@@ -67,10 +62,11 @@ export class SnippetUpdater {
     const array = [...docContent.matchAll(regexp)]
     predicats = predicats.concat(array.map(function (value) { return [value[1], value[2]] }))
     predicats = predicats.filter(function (predicat) { return predicat[0] != "test" })
+
     return predicats
   }
-  dispose() {
-  }
+
+  dispose() { }
 }
 
 export class SnippetUpdaterController {
@@ -103,7 +99,6 @@ export class SnippetUpdaterController {
   }
 }
 
-
 export class PrologCompletionProvider {
   public provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext) {
     var snippetCompletion = []
@@ -123,7 +118,6 @@ export class PrologCompletionProvider {
       str = str + ")$0"
 
       completionItem.insertText = new SnippetString(str)
-      //const docs: any = new MarkdownString( '<span style="color:#de190b;">yes</span>'+elem[0].toString()+"("+elem[1].toString()+")\n custom predicate\n\n");
       const docs: any = new MarkdownString()
       docs.supportHtml = true
       docs.appendMarkdown('<span style="color:#8da9fc;">' + elem[0].toString() + '</span>(' + str2 + ')</br>Custom predicate')
@@ -131,10 +125,6 @@ export class PrologCompletionProvider {
       completionItem.detail = elem[0] + "/" + params.length
       snippetCompletion.push(completionItem)
     })
-    /*snippetCompletion.insertText = new SnippetString('Good ${1|morning,afternoon,evening|}. It is ${1}, right?');
-    const docs: any = new MarkdownString("Inserts a snippet that lets you select [link](x.ts).");
-    snippetCompletion.documentation = docs;
-    docs.baseUri = Uri.parse('http://example.com/a/b/c/');*/
     return snippetCompletion
   }
 }

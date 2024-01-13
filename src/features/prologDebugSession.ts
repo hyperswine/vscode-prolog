@@ -16,14 +16,12 @@ import {
 } from "./prologDebugger"
 import * as path from "path"
 import { spawn, SpawnOptions } from "process-promises"
-import { ClientRequest } from "http"
 
 export class PrologDebugSession extends DebugSession {
   private static SCOPEREF = 1;
   public static THREAD_ID = 100;
   private _prologDebugger: PrologDebugger
   private _runtimeExecutable: string
-  // private _runtimeArgs: string[];
   private _startupQuery: string
   private _startFile: string
   private _cwd: string
@@ -124,12 +122,10 @@ export class PrologDebugSession extends DebugSession {
     request?: DebugProtocol.Request
   ) {
     let richArgs = args as LaunchRequestArguments
-    // window.showInformationMessage("hello");
     this._startupQuery = richArgs.startupQuery || "start"
     this._startFile = path.resolve(richArgs.program)
     this._cwd = richArgs.cwd
     this._runtimeExecutable = richArgs.runtimeExecutable || "swipl"
-    // this._runtimeArgs = args.runtimeArgs || null;
     this._stopOnEntry = typeof richArgs.stopOnEntry ? richArgs.stopOnEntry : true
     this._traceCmds = richArgs.traceCmds
     this._prologDebugger = new PrologDebugger(richArgs, this)
@@ -218,7 +214,6 @@ export class PrologDebugSession extends DebugSession {
         const vars = this._currentVariables
         let exp = args.expression.trim()
         if (exp.startsWith(":")) {
-          //work around for input from stdin
           let input = "input" + args.expression
           this._prologDebugger.query(input + "\n")
         } else {

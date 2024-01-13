@@ -23,10 +23,6 @@ export function loadEditHelpers(subscriptions: Disposable[]) {
       },
       wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
       onEnterRules: [
-        // {
-        //   beforeText: /.+:-|:- begin_tests.+\.$/,
-        //   action: { indentAction: IndentAction.Indent }
-        // },
         {
           beforeText: /(^\s*|.*%.+)$/,
           action: { indentAction: IndentAction.None }
@@ -39,10 +35,6 @@ export function loadEditHelpers(subscriptions: Disposable[]) {
           beforeText: /.+\([^\)]*$/,
           action: { indentAction: IndentAction.Indent }
         },
-        // {
-        //   beforeText: /.+\[[^\]]*$/,
-        //   action: { indentAction: IndentAction.Indent }
-        // },
         {
           // e.g. /** | */
           beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,

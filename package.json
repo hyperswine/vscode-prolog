@@ -2,7 +2,7 @@
   "name": "swi-prolog",
   "displayName": "SWI Prolog",
   "description": "SWI Prolog Language Support",
-  "version": "1.0.17",
+  "version": "1.0.0",
   "publisher": "Jasen Qin",
   "icon": "images/logo.png",
   "license": "MIT",
@@ -50,6 +50,9 @@
     "url": "https://github.com/hyperswine/vscode-prolog/issues"
   },
   "main": "./out/main.js",
+  "activationEvents": [
+    "onLanguage:prolog"
+  ],
   "contributes": {
     "languages": [
       {

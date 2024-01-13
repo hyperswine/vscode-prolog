@@ -1,5 +1,5 @@
 # Changelog
 
-## [0.0.1]
+## [1.0.0]
 
-Initial Fork.
+Initial Fork and refactoring to suit SWI-Prolog.

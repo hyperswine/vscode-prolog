@@ -34,12 +34,12 @@
       "problemMatcher": []
     },
     {
-      "label": "updateVSCProlog",
+      "label": "updateSWIProlog",
       "type": "shell",
       "command": "npm",
       "args": [
         "run",
-        "updateVSCProlog"
+        "updateSWIProlog"
       ],
       "problemMatcher": []
     }
