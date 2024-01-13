@@ -1,29 +1,33 @@
-# VSC-Prolog
+# Prolog Language Support
 
 A VS Code extension which provides language support for SWI-Prolog.
 
 ## Features
 
-* [Syntax highlighting](#syntax-highlighting)
-* [Snippets](#predicate-snippets)
-* [Information Hovers](#information-hovers)
-* [Linter](#grammar-linter)
-* [Edit helpers](#edit-helpers)
-  * [Import/Dynamic helper (SWI ONLY)](#import-or-dynamic-predicate-helper)
-  * [Export helper (SWI ONLY)](#export-helper)
-  * [Recursion helper](#recursion-helper)
-  * [Anonymous variable helper](#anonymous-variables-helper)
-* [Load active source file and query goals](#load-active-source-file-and-query-goals)
-* [Goto definition of predicate under cursor](#go-to-definition-of-predicate-under-cursor)
-* [Show all refences of predicate under cursor](#show-all-references-of-predicate-under-cursor)
-* [Refactor predicate under cursor(experimental](#refactor-predicate-under-cursor)
-* [Code formatter (Linux os only)](#code-formatter)
-* [Debugger(experimental, SWI ONLY)](#debugger)
-  * Leep, creep, skip, Up, Stop, Restart
-  * Breakpoints, including conditional breakpoints and hit count breakpoints
-  * Spy(function breakpoints)
-  * Data inspection
-  * Evaluation
+- [Prolog Language Support](#prolog-language-support)
+  - [Features](#features)
+  - [Feature descriptions and usages](#feature-descriptions-and-usages)
+    - [Syntax highlighting](#syntax-highlighting)
+    - [Predicate snippets](#predicate-snippets)
+    - [Information hovers](#information-hovers)
+    - [Grammar linter](#grammar-linter)
+    - [Edit helpers](#edit-helpers)
+      - [Import or Dynamic predicate helper](#import-or-dynamic-predicate-helper)
+      - [Export helper](#export-helper)
+      - [Recursion helper](#recursion-helper)
+      - [Anonymous variables helper](#anonymous-variables-helper)
+    - [Load active source file and query goals](#load-active-source-file-and-query-goals)
+    - [Go to definition of predicate under cursor](#go-to-definition-of-predicate-under-cursor)
+    - [Show all references of predicate under cursor](#show-all-references-of-predicate-under-cursor)
+    - [Refactor predicate under cursor](#refactor-predicate-under-cursor)
+    - [Code formatter](#code-formatter)
+    - [Debugger](#debugger)
+  - [Configurations](#configurations)
+  - [Debugger settings](#debugger-settings)
+  - [Commands keybindings](#commands-keybindings)
+  - [Known Issues](#known-issues)
+  - [Release Notes](#release-notes)
+  - [License](#license)
 
 ## Feature descriptions and usages
 
@@ -117,15 +121,15 @@ A VS Code extension which provides language support for SWI-Prolog.
 ### Refactor predicate under cursor
 
   Right click a predicate in editor, then trigger the command 'Refactor predicate under cursor' from the editor context menu. VSC-Prolog pops up a message box to ask for user confirmation and then an input box shows off to accept new predicate name that is used to replace the original one in all the references and its definition clause head(s).
-  
+
   If the user selects a builtin or foreign predicate and confirms in the warning box, all the predicate functor names of referencs would be replaced but the definition remains unchanged. This maybe is useful if you want to substitute a predicate with the same arity.
 
   > You'd better to commit the current stage of the version control system in VS Code before refactoring action in order to rollback refactoring results easily with one command of 'discard all changes' when the results are not what you expected.
-  
+
   ![refactoring](images/refactoring.gif)
 
 ### Code formatter
-  
+
   > This feature only works on linux system.
 
   Code formatting is implemented by calling portray_clause, so the beautification style is depended on portray_clause. Thus some limits should be mentioned.
@@ -153,7 +157,7 @@ A VS Code extension which provides language support for SWI-Prolog.
 ### Debugger
 
   The experimental debugger of VSC-Prolog tries to visualize the command line tracer of SWI-Prolog in VS Code. Read [VS Code handbook about debugging](https://code.visualstudio.com/docs/editor/debugging) for how VS Code debugging works generally.
-  
+
   For the first time to debug in VS Code it is necessary to setup a launch.json file under .vscode directory in a project root. VS Code pops down a list of debug environments when you first click 'start debugging' button (f5) or the gear icon. The list contains 'Prolog' if VSC-Prolog extension is installed. A default launch.json file would be generated. Among the all settings, two must be set firstly: 'runtime executable' and 'startup query' according to your environment. 'runtime executable' points to your swipl executable path and 'startup query' refers to the goal you want to start debugging. ___There is only one file containing the 'startup goal' in a project.___ Refer to next section for detailed explanations about other settings.
 
   ![launch](images/launch.gif)
@@ -199,7 +203,7 @@ A VS Code extension which provides language support for SWI-Prolog.
     Debug Console is consist of output area and an input box. The output area displays all outputs from debugging and the input box can be used to input goals to evaluate in which you can use variables with current bound values.
 
     ![eval](images/eval.gif)
-  
+
     > Note about input from stdin during debugging:
     >
     > The input box is also used to accept user input during debugging. While  a program is waiting for input from user, the yellow arrow indicating trace location would disappear. At this time you ___type firstly a semicolon___ followed by your real input contents. Another important point is that the prolog system prompt (default |:) would not show off anywhere, unless outputting prompts by stdout or stderr which piped to debug output area.
@@ -239,7 +243,7 @@ A VS Code extension which provides language support for SWI-Prolog.
 ## Debugger settings
 
   Every project must have a launch.json configuration file under .vscode directory before starting debugging. VSC-Prolog's launch.json schema is excerpted as follows from the package.json of VSC-Prolog project. This file can be edited directly after generated for the first time to debug.
-  
+
 * program
 
     type: string
@@ -320,8 +324,6 @@ A VS Code extension which provides language support for SWI-Prolog.
 * Formatting doesn't work when there are any syntax errors in the scope to be formatted.
 
 * Formatting for swi doesn't work when there are singleton variables including named underscore-starting singleton variables in the scopes to be formatted.
-
-* Formatting for ECLiPSe would remove line comments after invalid terms of the lines.
 
 * During debug tracing, prompt for stdin input doesn't display in debug console.
 
