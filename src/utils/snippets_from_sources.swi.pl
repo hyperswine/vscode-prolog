@@ -10,63 +10,62 @@
 :- (volatile dir_handled/1).
 
 generate_vscode_swipl_snippets(Options) :-
-    option(detailed_description(TrueOrFalse), Options, true),
-    nb_setval(detailed_description, TrueOrFalse),
-    option(dict_in(DictIn), Options, _{}),
-    option(json_file(SnippetsFile1), Options, './snippets/prolog.swi.json'),
-    absolute_file_name(SnippetsFile1, SnippetsFile),
-    nb_linkval(snippet_dict, DictIn),
-    retractall(dir_handled(_)),
-    retractall(module_spec(_)),
-    writeln("Handling source files ..."),
-    traverse_dirs,
-    writeln("Handling html files ..."),
-    option(doc_dirs(DirSpecs), Options, [swi(doc)]),
-    vscode_swipl_snippets_from_html_under_dirs(DirSpecs),
-    nb_getval(snippet_dict, ResltDict),
-    write_to_json_file(SnippetsFile, ResltDict).
+  option(detailed_description(TrueOrFalse), Options, true),
+  nb_setval(detailed_description, TrueOrFalse),
+  option(dict_in(DictIn), Options, _{}),
+  option(json_file(SnippetsFile1), Options, './snippets/prolog.swi.json'),
+  absolute_file_name(SnippetsFile1, SnippetsFile),
+  nb_linkval(snippet_dict, DictIn),
+  retractall(dir_handled(_)),
+  retractall(module_spec(_)),
+  writeln("Handling source files ..."),
+  traverse_dirs,
+  writeln("Handling html files ..."),
+  option(doc_dirs(DirSpecs), Options, [swi(doc)]),
+  vscode_swipl_snippets_from_html_under_dirs(DirSpecs),
+  nb_getval(snippet_dict, ResltDict),
+  write_to_json_file(SnippetsFile, ResltDict).
 
 %% ----------------------------------------------------
 
 traverse_dirs :-
-    file_search_path(library, Dir0),
-    forall(absolute_file_name(Dir0,
-                              Dir,
-
-                              [ expand(true),
-                                file_type(directory),
-                                file_errors(fail),
-                                solutions(all)
-                              ]),
-           handle_dir(Dir)),
-    fail.
+  file_search_path(library, Dir0),
+  forall(absolute_file_name(Dir0,
+                            Dir,
+                            [ expand(true),
+                              file_type(directory),
+                              file_errors(fail),
+                              solutions(all)
+                            ]),
+         handle_dir(Dir)),
+  fail.
 traverse_dirs.
 
 handle_dir(Dir) :-
     dir_handled(Dir), !.
 handle_dir(Dir) :-
-    assert(dir_handled(Dir)),
-    ensure_slash(Dir, DirS), !,
-    writeln('Enter directory':Dir),
-    setup_call_cleanup(working_directory(Old, DirS),
-                       handle_dir,
-                       working_directory(_, Old)),
-    writeln(Dir:' over.'), !.
+  assert(dir_handled(Dir)),
+  ensure_slash(Dir, DirS), !,
+  writeln('Enter directory':Dir),
+  setup_call_cleanup(working_directory(Old, DirS),
+                     handle_dir,
+                     working_directory(_, Old)),
+  writeln(Dir:' over.'), !.
 
 handle_dir :-
-    get_plfiles(Files),
-    forall(member(File, Files), vscode_swipl_snippets_from_source(File)),
-    recurse_subdirs.
+  get_plfiles(Files),
+  forall(member(File, Files), vscode_swipl_snippets_from_source(File)),
+  recurse_subdirs.
 
 recurse_subdirs :-
-    exists_file('./MKINDEX.pl'), !.
+  exists_file('./MKINDEX.pl'), !.
 recurse_subdirs :-
-    directory_files('.', Entries1),
-    delete(Entries1, '.', Entries2),
-    delete(Entries2, .., Entries),
-    maplist(absolute_file_name, Entries, AbsoluteEntries),
-    include(exists_directory, AbsoluteEntries, SubDirs),
-    forall(member(SubDir, SubDirs), handle_dir(SubDir)).
+  directory_files('.', Entries1),
+  delete(Entries1, '.', Entries2),
+  delete(Entries2, .., Entries),
+  maplist(absolute_file_name, Entries, AbsoluteEntries),
+  include(exists_directory, AbsoluteEntries, SubDirs),
+  forall(member(SubDir, SubDirs), handle_dir(SubDir)).
 
 get_plfiles(Files) :-
     absolute_file_name('MKINDEX.pl', F),

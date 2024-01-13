@@ -232,10 +232,9 @@ export default class PrologDocumentFormatter
     this._args = ["--nodebug", "-q"]
     let pfile = jsesc(path.resolve(`${__dirname}/formatter_swi`))
     goals = `
-          use_module('${pfile}').
-          formatter:format_prolog_source(${this._tabSize}, ${this._tabDistance
-      }, "${rangeTxt}", "${docText}").
-        `
+      use_module('${pfile}').
+      formatter:format_prolog_source(${this._tabSize}, ${this._tabDistance}, "${rangeTxt}", "${docText}").
+    `
 
     let termStr = ""
     let prologProc = null
@@ -243,33 +242,19 @@ export default class PrologDocumentFormatter
     try {
       let prologChild = await spawn(this._executable, this._args, {
         cwd: workspace.rootPath
-      })
-        .on("process", proc => {
-          if (proc.pid) {
-            prologProc = proc
-            proc.stdin.write(goals)
-            proc.stdin.end()
-          }
-        })
-        .on("stdout", data => {
-          // console.log("data:" + data);
-          if (/::::::ALLOVER/.test(data)) {
-            this.resolveTerms(doc, termStr, range, true)
-          }
-          if (/TERMSEGMENTBEGIN:::/.test(data)) {
-            this.resolveTerms(doc, termStr, range)
-            termStr = data + "\n"
-          } else {
-            termStr += data + "\n"
-          }
-        })
-        .on("stderr", err => {
-          // console.log("formatting err:" + err);
-          // this.outputMsg(err);
-        })
-        .on("close", _ => {
-          console.log("closed")
-        })
+      }).on("process", proc => {
+        if (proc.pid) {
+          prologProc = proc
+          proc.stdin.write(goals)
+          proc.stdin.end()
+        }
+      }).on("stdout", data => {
+        if (/::::::ALLOVER/.test(data)) this.resolveTerms(doc, termStr, range, true)
+        if (/TERMSEGMENTBEGIN:::/.test(data)) {
+          this.resolveTerms(doc, termStr, range)
+          termStr = data + "\n"
+        } else termStr += data + "\n"
+      }).on("stderr", err => { }).on("close", _ => console.log("closed"))
     } catch (error) {
       let message: string = null
       if ((<any>error).code === "ENOENT") {
@@ -303,19 +288,11 @@ export default class PrologDocumentFormatter
     this.resolveTermsSwi(doc, range, last, term, vars, termCharA, commsArr)
   }
 
-  private resolveTermsSwi(
-    doc: TextDocument,
-    range: Range,
-    last: boolean,
-    term: RegExpMatchArray,
-    vars: RegExpMatchArray,
-    termCharA: number,
-    commsArr: IComment[]
-  ) {
+  private resolveTermsSwi(doc: TextDocument, range: Range, last: boolean, term: RegExpMatchArray, vars: RegExpMatchArray, termCharA: number, commsArr: IComment[]) {
     let formattedTerm = this.restoreVariableNames(term[1], vars[1].split(","))
-    if (last) {
-      termCharA++ // end_of_file offset of memory file
-    }
+    // end_of_file offset of memory file
+    if (last) termCharA++
+
     if (commsArr.length > 0) {
       termCharA =
         termCharA < commsArr[0].location ? termCharA : commsArr[0].location
@@ -344,8 +321,9 @@ export default class PrologDocumentFormatter
           .getText()
           .slice(this._currentTermInfo.charsSofar, termCharA + this._startChars)
           .match(/\s*$/)[0]
+        // replace new line produced by portray_clause with original gaps
         this._currentTermInfo.termStr = this._currentTermInfo.termStr.replace(
-          /\s*$/, // replace new line produced by portray_clause with original gaps
+          /\s*$/,
           lastAfterTerm
         )
         this.generateTextEdit(doc)
@@ -368,7 +346,6 @@ export default class PrologDocumentFormatter
     }
   }
 
-
   private generateTextEdit(doc: TextDocument) {
     let termRange = new Range(
       this._currentTermInfo.startLine,
@@ -376,6 +353,7 @@ export default class PrologDocumentFormatter
       this._currentTermInfo.endLine,
       this._currentTermInfo.endChar
     )
+
     if (this._currentTermInfo.comments.length > 0) {
       let newComms = this.mergeComments(
         doc,
@@ -389,6 +367,7 @@ export default class PrologDocumentFormatter
         newComms
       )
     }
+
     if (this._currentTermInfo.termStr !== "") {
       this._textEdits.push(
         new TextEdit(termRange, this._currentTermInfo.termStr)
@@ -448,28 +427,18 @@ export default class PrologDocumentFormatter
             comment += os.EOL
             lastOrigPos += os.EOL.length
           }
-          // if (origTxt.charAt(index + comment.length) === os.EOL) {
-          //   comment += os.EOL;
-          //   lastOrigPos += os.EOL.length;
-          // }
 
           let tail = origSeg.match(/([()\s]*[()])?(\s*)$/)
           let spaces = tail[2]
-          if (spaces.length > 0) {
-            comment = spaces + comment
-          }
+          if (spaces.length > 0) comment = spaces + comment
           let tail1 = tail[1] ? tail[1] : ""
           txtWithComm += formatedText.slice(0, j) + tail1 + comment
-          formatedText = formatedText
-            .slice(j + tail1.length)
-            .replace(/^\r?\n/, "")
+          formatedText = formatedText.slice(j + tail1.length).replace(/^\r?\n/, "")
           break
         }
 
         let char = formatedText.charAt(j)
-        if (!/[\s()]/.test(char)) {
-          noSpaceFormatted += char
-        }
+        if (!/[\s()]/.test(char)) noSpaceFormatted += char
         j++
       }
     }
@@ -477,12 +446,9 @@ export default class PrologDocumentFormatter
   }
 
   private restoreVariableNames(text: string, vars: string[]): string {
-    if (vars.length === 1 && vars[0] === "") {
-      return text
-    }
-    if (vars.length === 0) {
-      return text
-    }
+    if (vars.length === 1 && vars[0] === "") return text
+    if (vars.length === 0) return text
+
     let dups: { newVars: string[]; dup: string[] } = this.getDups(vars)
     dups.newVars.forEach(pair => {
       let [abc, orig] = pair.split(":")
@@ -491,15 +457,15 @@ export default class PrologDocumentFormatter
         orig.trim()
       )
     })
-    return this.restoreVariableNames(text, dups.dup)
+
+    this.restoreVariableNames(text, dups.dup)
   }
 
   private getDups(vars: string[]) {
     let left: string[] = new Array<string>(vars.length)
     let right: string[] = new Array<string>(vars.length)
-    for (let i = 0; i < vars.length; i++) {
-      [left[i], right[i]] = vars[i].split(":")
-    }
+    for (let i = 0; i < vars.length; i++) [left[i], right[i]] = vars[i].split(":")
+
     let dup: string[] = []
     let index: number
     for (let i = 0; i < vars.length; i++) {

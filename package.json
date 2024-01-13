@@ -290,14 +290,6 @@
           "default": "/usr/bin/swipl",
           "description": "Points to the Prolog executable."
         },
-        "prolog.dialect": {
-          "type": "string",
-          "enum": [
-            "swi"
-          ],
-          "default": "swi",
-          "description": "swi: SWI-Prolog;"
-        },
         "prolog.linter.run": {
           "type": "string",
           "enum": [
@@ -325,7 +317,7 @@
         },
         "prolog.format.tabSize": {
           "type": "number",
-          "default": 4,
+          "default": 2,
           "description": "The size of a tab in spaces"
         },
         "prolog.format.enabled": {

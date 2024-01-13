@@ -411,9 +411,7 @@ export default class PrologLinter implements CodeActionProvider {
         this.triggerLinter(e.document)
       })
     } else {
-      if (this.timer) {
-        clearTimeout(this.timer)
-      }
+      if (this.timer) clearTimeout(this.timer)
       this.documentListener = workspace.onDidSaveTextDocument(
         this.doPlint,
         this
@@ -428,15 +426,11 @@ export default class PrologLinter implements CodeActionProvider {
       return
     }
     if (this.trigger === RunTrigger.onType) {
-      if (this.timer) {
-        clearTimeout(this.timer)
-      }
+      if (this.timer) clearTimeout(this.timer)
       this.timer = setTimeout(() => {
         this.doPlint(textDocument)
       }, this.delay)
-    } else if (this.trigger !== RunTrigger.never) {
-      this.doPlint(textDocument)
-    }
+    } else if (this.trigger !== RunTrigger.never) this.doPlint(textDocument)
   }
 
   public activate(): void {
